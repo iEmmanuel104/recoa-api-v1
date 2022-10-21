@@ -2,9 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./models');
 const app = express();
-// const cors = require('cors');
+const cors = require('cors');
 // const corsOptions ={
-//     origin:'http://127.0.0.1:8080', 
+//     origin:'http://127.0.0.1:5000', 
 //     credentials:true,            //access-control-allow-credentials:true
 //     optionSuccessStatus:200
 // }
@@ -14,7 +14,7 @@ const app = express();
 // app.use(morgan('dev'));
 // app.use(express.json());
 // app.use((req, res, next) => {
-//     const allowedOrigins = ["https://iemmanuel104.github.io", "http://127.0.0.1:8080"];
+//     const allowedOrigins = ["https://iemmanuel104.github.io", "http://127.0.0.1:5000"];
 //     const origin = req.headers.origin;
 //     if (allowedOrigins.includes(origin)) {
 //         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -27,6 +27,7 @@ const app = express();
 //     next();
 // });
 
+app.use(cors());
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -46,7 +47,8 @@ db.sequelize.authenticate()
     .catch(err => {
         console.error('Unable to connect to the database:', err);
     });
-    
+
+   
 // simple route
 app.get("/", (req, res) => {
     res.json({ message: "Welcome to RECOA application." });
