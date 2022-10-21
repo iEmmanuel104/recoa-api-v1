@@ -1,10 +1,10 @@
 {
   "development": {
-    "username": "recoa",
-    "password": "recoajosh",
-    "database": "Recoa_db",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "username": "eejskdpfwhceen",
+    "password": "48501b3934479204bd94a3261cad2e019244d975375ffebe54f7003151979c2f",
+    "database": "d11vl7q0h5qg11",
+    "host": "ec2-54-147-36-107.compute-1.amazonaws.com",
+    "dialect": "postgres://eejskdpfwhceen:48501b3934479204bd94a3261cad2e019244d975375ffebe54f7003151979c2f@ec2-54-147-36-107.compute-1.amazonaws.com:5432/d11vl7q0h5qg11s"
   },
   "test": {
     "username": "root",
