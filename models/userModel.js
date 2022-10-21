@@ -43,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       const values = Object.assign({}, this.get());
 
       delete values.password;
+      delete values.verification_code;
 
       return values;
     };
