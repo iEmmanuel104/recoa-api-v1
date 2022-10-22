@@ -4,80 +4,68 @@ const Property = db.Property;
 const User = db.User;
 const Op = require('sequelize').Op;
 const path = require('path');
+const asyncWrapper = require("../utils/asyncWrapper");
+const { BadRequestError, NotFoundError } = require('../utils/errors');
 
-const addpropertyUnit = async (req, res) => {
-    try {
-        const { propertyId, name, description, price, count } = req.body;
-        const { mimetype, originalname, filename } = req.file;
-        console.log(req.file);
-        if (!propertyId) {
-            throw new Error('Reference Property ID is required');
-        }
-        if (!name) {
-            throw new Error('Name is required');
-        }
-        if (!description) {
-            throw new Error('Description is required');
-        }
-        if (!price) {
-            throw new Error('Price is required');
-        }
-        if (!count) {
-            throw new Error('Count is required');
-        }
-        if (!mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file');
-        }
-        const UnitAlreadyExists = await Unit.findOne({
-            where: { name: name },
-        });
-        if (UnitAlreadyExists) {
-            throw new Error('Unit with the specified name already exists');
-        }
+const addpropertyUnit = asyncWrapper(async (req, res) => {
+    const { propertyId, name, description, price, count } = req.body;
+    const { mimetype, originalname, filename } = req.file;
+    console.log(req.file);
+    if (!propertyId) throw new Error('Reference Property ID is required');
 
-        const property = await Property.findOne({
-            where: { id: propertyId },
-        });
-        if (!property) {
-            throw new Error('Property with the specified ID does not exists');
-        }
-        const unit = await Unit.create({
-            propertyId,
-            name,
-            description,
-            price,
-            count,
-            type: mimetype,
-            imagename: originalname,
-            data: filename,
-    
-        });
-        res.status(201).json({ unit,
-            msg: "Unit created, image succesfully uploaded", });
-    } catch (error) {
-        res.status(500).send(error.message);
+    if (!name) throw new Error('Name is required');
+    if (!description) throw new Error('Description is required');
+    if (!price) throw new Error('Price is required');
+    if (!count) throw new Error('Count is required');
+
+    if (!mimetype.startsWith('image')) throw new Error('Please upload an image file');
+
+    const UnitAlreadyExists = await Unit.findOne({
+        where: { name: name },
+    });
+    if (UnitAlreadyExists) {
+        throw new Error('Unit with the specified name already exists');
     }
-};
 
-const getAllpropertyUnit = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const property = await Property.findOne({
-            where: { id: id },
-        });
-        if (!property) {
-            throw new Error('Property with the specified ID does not exists');
-        }
-        const units = await Unit.findAll(
-            {
-                where: { propertyId: id },
-            },
-        );
-        res.status(200).json({ msg: "All units for this property", units });
-    } catch (error) {
-        res.status(500).send(error.message);
+    const property = await Property.findOne({
+        where: { id: propertyId },
+    });
+    if (!property) {
+        throw new Error('Property with the specified ID does not exists');
     }
-};
+    const unit = await Unit.create({
+        propertyId,
+        name,
+        description,
+        price,
+        count,
+        type: mimetype,
+        imagename: originalname,
+        data: filename,
+
+    });
+    res.status(201).json({
+        unit,
+        msg: "Unit created, image succesfully uploaded",
+    });
+});
+
+const getAllpropertyUnit = asyncWrapper(async (req, res) => {
+
+    const { id } = req.params;
+    const property = await Property.findOne({
+        where: { id: id },
+    });
+    if (!property) {
+        throw new BadRequestError('Property with the specified ID does not exists');
+    }
+    const units = await Unit.findAll(
+        {
+            where: { propertyId: id },
+        },
+    );
+    res.status(200).json({ msg: "All units for this property", units });
+});
 
 const getpropertyUnitById = async (req, res) => {
     try {
@@ -88,7 +76,7 @@ const getpropertyUnitById = async (req, res) => {
         if (unit) {
             return res.status(200).json({ unit });
         }
-    
+
         res.status(404).send('Unit with the specified ID does not exists');
     } catch (error) {
         res.status(500).send(error.message);
@@ -193,7 +181,7 @@ const reservepropertyUnit = async (req, res) => {
         }
         if (unit.count <= 0) {
             throw new Error('Unit is not available');
-        }        
+        }
         const user = await User.findOne({
             where: { id: userId },
         });
@@ -249,7 +237,7 @@ const getreservedpropertyUnit = async (req, res) => {
     } catch (error) {
         res.status(500).send(error.message);
     }
-};      
+};
 
 
 module.exports = {
