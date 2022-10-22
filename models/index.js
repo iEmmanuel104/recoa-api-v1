@@ -5,33 +5,70 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const process = require('process');
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const env = process.env.NODE_ENV 
+const Pool = require('pg').Pool
 const db = {};
-const pg = require('pg');
+
+const config  = require('../config/config.js')
 
 let sequelize;
+switch (env) {
+  case 'production':
+    const isProduction = process.env.NODE_ENV === 'production'
+    const connectionString = isProduction ? process.env.DATABASE_URL : config.development
+    const pool = new Pool({
+      connectionString: connectionString,
+    })
+    sequelize = new Sequelize(connectionString, {
+      dialect: 'postgres',
+      protocol: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
+      }
+    });
+    break;
+  case 'testing':
+    sequelize = new Sequelize(
+      config.testing.database,
+      config.testing.username,
+      config.testing.password,
+      {
+        host: config.testing.host,
+        dialect: config.testing.dialect,
+        pool: {
+          max: 5,
+          min: 0,
+          idle: 10000
+        } 
+      }
+    );
+    break;
+  default:
+    sequelize = new Sequelize(
+      config.development.database,
+      config.development.username,
+      config.development.password,
+      {
+        host: config.development.host,
+        dialect: config.development.dialect,
+        pool: {
+          max: 5,
+          min: 0,
+          idle: 10000
+        }
+      }
+    );
+}
+
+
 // if (config.use_env_variable) {
 //   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 // } else {
 //   sequelize = new Sequelize(config.database, config.username, config.password, config);
 // }
-
-
-
-if (process.env.DATABASE_URL) {
-  // the application is executed on Heroku ... use the postgres database
-  const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
-  });
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect:  'postgres',
-    protocol: 'postgres'
-  })
-}
 
 fs
   .readdirSync(__dirname)
