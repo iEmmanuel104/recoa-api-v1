@@ -9,7 +9,7 @@ const addpropertyUnit = async (req, res) => {
     try {
         const { propertyId, name, description, price, count } = req.body;
         const { mimetype, originalname, filename } = req.file;
-        console.log(req.file);
+
         if (!propertyId) {
             throw new Error('Reference Property ID is required');
         }

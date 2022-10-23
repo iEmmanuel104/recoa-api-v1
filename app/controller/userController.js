@@ -16,7 +16,7 @@ const registerAdmin = async (req, res) => {
         let usercode = Math.floor(100000 + Math.random() * 90000);
         let admincode = Math.floor(Math.random()* (999999-100000+1)) + 100000;
         const verification_code = await usercode.toString() + admincode.toString();
-        console.log(verification_code);
+
         // check if email already exists
         const userExist = await User.findOne({ where: { email } });
         if (userExist) {
@@ -138,8 +138,6 @@ const Createinvestor = async (req, res) => {
         }
         // generate passwrod
         const password = "RECOA" + generatePassword(8);
-
-        console.log(password);
 
         const newInvestor = await User.create({
             username,
