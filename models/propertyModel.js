@@ -42,6 +42,13 @@ module.exports = (sequelize, DataTypes) => {
             // onDelete: 'CASCADE',
             // onUpdate : 'CASCADE'
         });
+        Property.belongsToMany(models.Waitlist, {
+            through: 'WaitlistProperty',
+            as: 'waitlist',
+            foreignKey: 'propertyId',
+            // onDelete: 'CASCADE',
+            // onUpdate : 'CASCADE'
+        });
     };
     
 

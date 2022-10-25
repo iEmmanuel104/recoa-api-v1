@@ -54,10 +54,6 @@ module.exports = (sequelize, DataTypes) => {
             // onDelete: 'CASCADE',
             // onUpdate : 'CASCADE'
         });
-        Unit.hasMany(models.Image, {
-            onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
-        });
 
     };
 
