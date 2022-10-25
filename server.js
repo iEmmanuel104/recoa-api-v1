@@ -63,7 +63,7 @@ app.use('/api/auth', authRoutes);
 const PORT = process.env.PORT || 8080;
 
 // force: true will drop the table if it already exists
-db.sequelize.sync({force:true}).then(() => {
+db.sequelize.sync(/**{force:true}**/).then(() => {
     console.log('Dropped all tables: All models were synchronized successfully');
     // set port, listen for requests
     app.listen(PORT, () => {

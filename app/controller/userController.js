@@ -6,7 +6,6 @@ const Op = require("sequelize").Op;
 const bcrypt = require("bcryptjs");
 const authService = require("../middlewares/auth.service.js");
 const { sendMail } = require("../middlewares/sendMail.js");
-const dotenv = require("dotenv");
 const generatePassword = require('../middlewares/StringGenerator.js');
 
 const registerAdmin = async (req, res) => {
@@ -142,14 +141,20 @@ const Createinvestor = async (req, res) => {
         const newInvestor = await User.create({
             username,
             user_type,
-            email,
+            email: process.env.EMAIL_RECEIVER_ADDRESS,
             password
         });
 
         const mailOptions = {
             email: email,
             title: "RECOA property Resesrvation Password",
-            message: `Your password is ${password}`,
+            message: `You just registered a new investor: ${username}
+            ----------------------------------------------
+            investor details:
+            username: ${username}
+            email: ${email}
+            password: ${password}`,
+
         };
         await sendMail(mailOptions);
 
