@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const db = require('./models');
 const app = express();
 const cors = require('cors');
+const morgan = require('morgan');
 // const corsOptions ={
 //     origin:'http://127.0.0.1:5000', 
 //     credentials:true,            //access-control-allow-credentials:true
@@ -28,6 +29,7 @@ const cors = require('cors');
 // });
 
 app.use(cors());
+app.use(morgan('dev'));
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -53,6 +55,9 @@ db.sequelize.authenticate()
 app.get("/", (req, res) => {
     res.json({ message: "Welcome to RECOA application." });
     });
+app.get('/testing', (req, res) => {
+    res.send('Hello World!')
+    })
 
 // routes
 const propertyRoutes = require('./app/routes/propertyRoutes.js');

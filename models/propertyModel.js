@@ -8,7 +8,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         name: {
             type: DataTypes.STRING,
-            unique: true,
             allowNull: false
         },
         location: {
@@ -44,9 +43,9 @@ module.exports = (sequelize, DataTypes) => {
         });
         Property.belongsToMany(models.Waitlist, {
             through: 'WaitlistProperty',
-            as: 'waitlist',
-            foreignKey: 'propertyId',
-            // onDelete: 'CASCADE',
+            as: 'waitlists',
+            foreignKey: 'property_id',
+            onDelete: 'CASCADE',
             // onUpdate : 'CASCADE'
         });
     };

@@ -1,13 +1,13 @@
 const db = require("../../models");
 const Property = db.Property;
 const Unit = db.Unit;
-const User = db.User;
 const Waitlist = db.Waitlist;
 const Op = require("sequelize").Op;
 
 const getAllProperty = async (req, res) => {
     try {
-        const properties = await Property.findAll({include: [Unit]});
+        const properties = await Property.findAll({include: [Unit]
+        });
         res.status(200).json({ properties });
     } catch (error) {
         res.status(500).send(error.message);
@@ -172,7 +172,19 @@ const joinPropertyWaitlist = async (req, res) => {
         const property = await Property.findOne({
             where: { id: id },
         });
-        if (property) {
+        const waitlisted = await Waitlist.findOne({
+            where: { email: email },
+            include: [{
+                model: Property,
+                as: "properties",
+                where: { id: id },
+            }],
+        });
+        if (waitlisted) {
+            throw new Error("You are already in the waitlist");
+        }
+
+        if (property.status === "waitlist") {
             const waitlist = await Waitlist.create({
                 name,
                 organisation,
@@ -182,15 +194,38 @@ const joinPropertyWaitlist = async (req, res) => {
                 date,
                 budget,
                 comments,
-                propertyId: id,
             });
+            await property.addWaitlist(waitlist);   
             return res.status(200).json({ waitlist });
+        }
+        res.status(404).send("Property is not in waitlist");
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+const getPropertyWaitlist = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const property = await Property.findOne({
+            where: { id: id },
+            include: [{
+                model: Waitlist,
+                as: "waitlists",
+            }],
+
+        });
+        if (property) {
+            return res.status(200).json({ property });
         }
         res.status(404).send("Property with the specified ID does not exists");
     } catch (error) {
         res.status(500).send(error.message);
     }
 };
+
+
+
 
 
 
@@ -204,5 +239,6 @@ module.exports = {
     deleteProperty,
     searchProperty,
     joinPropertyWaitlist,
+    getPropertyWaitlist,
 };
 

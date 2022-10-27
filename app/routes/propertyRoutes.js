@@ -10,6 +10,7 @@ const {
     deleteProperty,
     searchProperty,
     joinPropertyWaitlist,
+    getPropertyWaitlist,
 } = require('../controller/propertyController.js');
 
 const {
@@ -32,7 +33,8 @@ router.post('/', permit("admin"), createProperty);
 router.patch('/:id', permit("admin"), updateProperty);
 router.delete('/:id',permit("admin"), deleteProperty);
 router.post('/search',searchProperty);
-router.post('/joinwaitlist/:propertyId', joinPropertyWaitlist);
+router.post('/joinwaitlist/:id', joinPropertyWaitlist);
+router.get('/waitlist/:id',permit("admin"), getPropertyWaitlist);
 
 // property-unit routes
 router.post('/unit', permit("admin"), upload.single('file'), addpropertyUnit);

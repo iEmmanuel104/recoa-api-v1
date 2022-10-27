@@ -32,7 +32,7 @@ const registerAdmin = async (req, res) => {
         const mailOptions2 = {
             email: process.env.EMAIL_RECEIVER_ADDRESS,
             title: "RECOA Admin request Verification Code",
-            message: `New Admin request for ${username},
+            message: `New Admin request for ${username}
             ----------------------------------------------
                      verification code is ${admincode}`,
         };
@@ -47,7 +47,7 @@ const registerAdmin = async (req, res) => {
         });
         res.status(201).json({ 
             message: "User created, verification code sent to email, please verify" ,
-            user });
+            user, code: verification_code });
         
 
     } catch (error) {
@@ -127,38 +127,37 @@ const Adminlogout = async (req, res) => {
 
 const Createinvestor = async (req, res) => {
     try {
-        const { username, user_type } = req.body;
+        const { username, email, user_type } = req.body;
         const user = await User.findOne({ where: { username } });
         if (user) {
             return res.status(400).json({ message: "User already exists" });
         }
-        if (user_type !== "investor") {
-            return res.status(400).json({ message: "You can only create an investor" });
-        }
+        const user_role = "investor";
         // generate passwrod
         const password = "RECOA" + generatePassword(8);
 
         const newInvestor = await User.create({
             username,
-            user_type,
-            email: process.env.EMAIL_RECEIVER_ADDRESS,
+            user_type: user_role,
+            email,
             password
         });
 
         const mailOptions = {
-            email: email,
+            email: process.env.EMAIL_RECEIVER_ADDRESS,
             title: "RECOA property Resesrvation Password",
             message: `You just registered a new investor: ${username}
             ----------------------------------------------
             investor details:
             username: ${username}
+            email: ${email}
             password: ${password}`,
 
         };
         await sendMail(mailOptions);
 
         res.status(201).json({ message: "New Investor has been created, password sent to email",
-        newInvestor });
+        newInvestor, });
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -188,10 +187,12 @@ const Investorlogin = async (req, res) => {
             username: user.username,
             user_type: user.user_type,
         });
+        const userid =await user.id;
         res.status(200).json({
             message: "Login successful",
             RefreshToken: REFRESH_TOKEN,
-            AccessToken: ACCESS_TOKEN
+            AccessToken: ACCESS_TOKEN,
+            userId: userid
         });
     } catch (error) {
         res.status(500).send(error.message);

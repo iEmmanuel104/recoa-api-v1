@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: "investor",
       allowNull: false
    },
-   verification_code: {
+   verification_code: { 
       type: DataTypes.STRING,
       allowNull: true
     },
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         hooks: {
             beforeCreate(user) {
                 user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
-                user.username = user.username.toLowerCase();
+                // user.username = user.username.toLowerCase();
             }
         }
     });

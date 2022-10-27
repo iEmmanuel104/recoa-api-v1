@@ -8,7 +8,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         name: {
             type: DataTypes.STRING,
-            unique: true,
             allowNull: false
         },
         organisation: {
@@ -28,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         date : {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: false
         },
         budget : {
@@ -46,16 +45,17 @@ module.exports = (sequelize, DataTypes) => {
         underscored: true,
         hooks: {
             beforeCreate(waitlist) {
-                waitlist.userId = waitlist.userId.toLowerCase();
+                waitlist.name = waitlist.name.toLowerCase();
             }
         }
     });
 
     Waitlist.associate = (models) => {
-        Waitlist.belongsTo(models.Property, {
-            foreignKey: 'propertyId',
+        Waitlist.belongsToMany(models.Property, {
+            through: 'WaitlistProperty',
+            as: 'properties',
+            foreignKey: 'waitlist_id',
             onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
         });
     };
 

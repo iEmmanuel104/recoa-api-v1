@@ -39,9 +39,17 @@ module.exports = (sequelize, DataTypes) => {
         hooks: {
             beforeCreate(unit) {
                 unit.name = unit.name.toLowerCase();
+
             }   
         }
     });
+
+    Unit.prototype.toJSON = function() {
+      const values = Object.assign({}, this.get());
+
+      delete values.data;
+      return values;
+    };
 
     Unit.associate = (models) => {
         Unit.belongsTo(models.Property, {
