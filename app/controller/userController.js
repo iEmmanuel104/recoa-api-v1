@@ -1,5 +1,6 @@
 const db = require("../../models");
 const Property = db.Property;
+require('dotenv').config();
 const Unit = db.Unit;
 const User = db.User;
 const Op = require("sequelize").Op;
