@@ -52,6 +52,7 @@ const registerAdmin = async (req, res) => {
 
     } catch (error) {
         res.status(500).send(error.message);
+        console.log(error);
     }
 }
 
@@ -73,6 +74,7 @@ const verifyAdmin = async (req, res) => {
         res.status(200).json({ message: "User verified, You can proceed to login" });
     } catch (error) {
         res.status(500).send(error.message);
+        console.log(error);
     }
 }
 
@@ -160,6 +162,7 @@ const Createinvestor = async (req, res) => {
         newInvestor, });
     } catch (error) {
         res.status(500).send(error.message);
+        console.log(error);
     }
 }
 
@@ -196,6 +199,7 @@ const Investorlogin = async (req, res) => {
         });
     } catch (error) {
         res.status(500).send(error.message);
+        console.log(error);
     }
 }
 
