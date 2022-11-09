@@ -130,7 +130,7 @@ const Adminlogout = async (req, res) => {
 
 const Createinvestor = async (req, res) => {
     try {
-        const { username, email, user_type } = req.body;
+        const { username, email} = req.body;
         const user = await User.findOne({ where: { username } });
         if (user) {
             return res.status(400).json({ message: "User already exists" });
