@@ -8,8 +8,8 @@ module.exports  = function (roles) {
                 return res.status(401).json({ message: "Access denied" });
             }
             const token = authHeader.split(" ")[1];
-                // const decoded = jwt.verify(token, process.env.ACCESS_TOKENJWT_SECRET);
-                const decoded = jwt.verify(token, "secret2");
+                const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_JWT_SECRET);
+                // const decoded = jwt.verify(token, "secret2");
                 if (!allowed_user.includes(decoded.user_type)) {
                     return res.status(403).json({ message: "Unauthorised Access" });
                 }

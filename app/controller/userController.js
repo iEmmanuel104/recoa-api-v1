@@ -146,18 +146,18 @@ const Createinvestor = async (req, res) => {
             password
         });
 
-        // const mailOptions = {
-        //     email: process.env.EMAIL_RECEIVER_ADDRESS,
-        //     title: "RECOA property Resesrvation Password",
-        //     message: `You just registered a new investor: ${username}
-        //     ----------------------------------------------
-        //     investor details:
-        //     username: ${username}
-        //     email: ${email}
-        //     password: ${password}`,
+        const mailOptions = {
+            email: process.env.EMAIL_RECEIVER_ADDRESS,
+            title: "RECOA property Resesrvation Password",
+            message: `You just registered a new investor: ${username}
+            ----------------------------------------------
+            investor details:
+            username: ${username}
+            email: ${email}
+            password: ${password}`,
 
-        // };
-        // await sendMail(mailOptions);
+        };
+        await sendMail(mailOptions);
 
         res.status(201).json({ message: "New Investor has been created, password sent to email",
         newInvestor, });
