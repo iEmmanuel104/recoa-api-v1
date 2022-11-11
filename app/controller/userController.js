@@ -160,7 +160,7 @@ const Createinvestor = async (req, res) => {
         await sendMail(mailOptions);
 
         res.status(201).json({ message: "New Investor has been created, password sent to email",
-        newInvestor, });
+        newInvestor, password: password });
     } catch (error) {
         res.status(500).send(error.message);
         console.log(error);
