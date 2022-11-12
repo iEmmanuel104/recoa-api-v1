@@ -48,8 +48,7 @@ const registerAdmin = async (req, res) => {
         });
         res.status(201).json({ 
             message: "User created, verification code sent to email, please verify" ,
-            user, code: verification_code });
-        
+            user, code: verification_code });     
 
     } catch (error) {
         res.status(500).send(error.message);
@@ -155,7 +154,6 @@ const Createinvestor = async (req, res) => {
             username: ${username}
             email: ${email}
             password: ${password}`,
-
         };
         await sendMail(mailOptions);
 

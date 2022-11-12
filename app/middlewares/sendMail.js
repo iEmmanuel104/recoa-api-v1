@@ -49,8 +49,6 @@ const sendMail = async (mail_data) => {
 
 }
 
-
-
 module.exports = {
     sendMail,
 };
