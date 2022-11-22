@@ -32,6 +32,11 @@ module.exports = (sequelize, DataTypes) => {
         data: {
             type: DataTypes.BLOB('long'),
         },
+        unitstatus: {
+            type: DataTypes.ENUM('available', 'reserved'),
+            defaultValue: 'available',
+            allowNull: false
+        }
     }, {
         tableName: 'unit',
         timestamps: false,

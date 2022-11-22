@@ -203,11 +203,23 @@ const Investorlogin = async (req, res) => {
     }
 }
 
+const GetAllInvestors = async (req, res) => {
+    try {
+        const investors = await User.findAll({
+            where: {user_type: "investor"}
+        })
+        res.status(200).json({investors})
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
+
 module.exports = {
     registerAdmin,
     verifyAdmin,
     Adminlogin,
     Adminlogout,
     Createinvestor,
-    Investorlogin
+    Investorlogin,
+    GetAllInvestors
 }

@@ -148,8 +148,8 @@ const searchProperty = async (req, res) => {
 
         const property = await Property.findAll({
             where: {
-                [Op.or]: [
-                    // { name: { [Op.like]: `%${name}%` } },
+                [Op.and]: [
+                    { name: { [Op.like]: `%${name}%` } },
                     { location: { [Op.like]: `%${location}%` } },
                 ],
                 ...queryobject,
