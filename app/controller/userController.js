@@ -22,6 +22,14 @@ const registerAdmin = async (req, res) => {
         if (userExist) {
             return res.status(400).json({ message: "Email already exists" });
         }
+        const user = await User.create({
+            username,
+            email,
+            password,
+            user_type,
+            verification_code
+        });        
+        
         // send verification code to email
         const mailOptions = {
             email: email,
@@ -39,13 +47,6 @@ const registerAdmin = async (req, res) => {
         };
         await sendMail(mailOptions2);
 
-        const user = await User.create({
-            username,
-            email,
-            password,
-            user_type,
-            verification_code
-        });
         res.status(201).json({ 
             message: "User created, verification code sent to email, please verify" ,
             user, code: verification_code });     
