@@ -6,8 +6,7 @@ const Op = require("sequelize").Op;
 
 const getAllProperty = async (req, res) => {
     try {
-        const properties = await Property.findAll({include: [Unit]
-        });
+        const properties = await Property.findAll();
         res.status(200).json({ properties });
     } catch (error) {
         res.status(500).send(error.message);
@@ -18,8 +17,7 @@ const getPropertyById = async (req, res) => {
     try {
         const { id } = req.params;
         const property = await Property.findOne({
-            where: { id: id },
-            include: [Unit],
+            where: { id: id }
         });
         if (property) {
             let sum = 0;
