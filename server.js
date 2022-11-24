@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const db = require('./models');
+const db = require('./models/index.js');
 const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
