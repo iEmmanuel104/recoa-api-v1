@@ -19,6 +19,10 @@ const getPropertyById = async (req, res) => {
         const property = await Property.findOne({
             where: { id: id }
         });
+        if (!property) {
+            res.status(404).send("Property with the specified ID does not exists");
+        }
+        // sum all property unit count
         if (property.Units) {
             let sum = 0;
             property.toJSON().Units.forEach((unit) => {
