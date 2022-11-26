@@ -19,11 +19,11 @@ const getPropertyById = async (req, res) => {
         const property = await Property.findOne({
             where: { id: id }
         });
-        if (property) {
+        if (property.Units) {
             let sum = 0;
             property.toJSON().Units.forEach((unit) => {
                 sum += unit.count
-            });
+        });            
             // property.dataValues.totalUnits = sum;
             return res.status(200).json({
                 msg: "Property found",
