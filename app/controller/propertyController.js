@@ -27,15 +27,15 @@ const getPropertyById = async (req, res) => {
             let sum = 0;
             property.toJSON().Units.forEach((unit) => {
                 sum += unit.count
-        });            
+        });
             // property.dataValues.totalUnits = sum;
             return res.status(200).json({
                 msg: "Property found",
                 totalunits: sum,
-                property});
-             
+                property});       
         }
-        res.status(404).send("Property with the specified ID does not exists");
+        res.status(200).json({msg: "Property found", property });
+
     } catch (error) {
         res.status(500).send(error.message);
     }
