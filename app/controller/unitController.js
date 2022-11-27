@@ -29,6 +29,7 @@ const getAllUnit = async (req, res) => {
         res.status(500).send(error.message);
     }
 };
+
 const addpropertyUnit = async (req, res) => {
     try {
         const { propertyId, name, description, price, count } = req.body;
@@ -105,7 +106,7 @@ const getAllpropertyUnit = async (req, res) => {
 
 const getUnitById = async (req, res) => {
     try {
-        const { unitid } = req.params;
+        const { unitid } = req.body;
         const unit = await Unit.findOne({
             where: { id: unitid },
         });
