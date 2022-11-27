@@ -7,8 +7,23 @@ const path = require('path');
 
 const getAllUnit = async (req, res) => {
     try {
-        const units = await Unit.findAll();
-        res.status(200).json({ msg: "All units", units });
+        const Allunit = await Unit.findAll(
+            {
+                include: [
+                    {
+                        model: Property,
+                        as: 'property',
+
+                    },  
+                    {
+                        model: User,
+                        as: 'user',
+                    }
+                ]
+            },
+
+        );
+        res.status(200).json({ msg: "All units", Allunit });
     } catch (error) {
         console.log(error);
         res.status(500).send(error.message);
