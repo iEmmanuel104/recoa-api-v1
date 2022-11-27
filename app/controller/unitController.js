@@ -78,7 +78,7 @@ const getAllpropertyUnit = async (req, res) => {
         }
         const units = await Unit.findAll(
             {
-                where: { propertyId: id },
+                where: { propertyId: propertyid },
             },
         );
         res.status(200).json({ msg: "All units for this property", units });
