@@ -8,8 +8,9 @@ const path = require('path');
 const getAllUnit = async (req, res) => {
     try {
         const units = await Unit.findAll();
-        res.status(200).json({ units });
+        res.status(200).json({ msg: "All units", units });
     } catch (error) {
+        console.log(error);s
         res.status(500).send(error.message);
     }
 };
