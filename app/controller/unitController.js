@@ -112,11 +112,11 @@ const getUnitById = async (req, res) => {
                 include: [
                     { 
                         model: Property,
-                        as: 'property',
+                        as: 'Property',
                     },
                     {
                         model: User,
-                        as: 'user',
+                        as: 'User',
                     }
                 ]
             });
