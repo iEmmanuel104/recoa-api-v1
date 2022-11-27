@@ -21,6 +21,7 @@ switch (env) {
     sequelize = new Sequelize(connectionString, {
       dialect: 'postgres',
       protocol: 'postgres',
+      logging: false,
       dialectOptions: {
         ssl: {
           require: true,
@@ -37,6 +38,7 @@ switch (env) {
       {
         host: config.testing.host,
         dialect: config.testing.dialect,
+        logging: false,
         pool: {
           max: 5,
           min: 0,
@@ -53,6 +55,7 @@ switch (env) {
       {
         host: config.development.host,
         dialect: config.development.dialect,
+        logging: false,
         pool: {
           max: 5,
           min: 0,
