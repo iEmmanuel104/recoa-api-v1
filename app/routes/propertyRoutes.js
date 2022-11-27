@@ -41,7 +41,7 @@ router.get('/waitlist/:id',permit("admin"), getPropertyWaitlist);
 router.get('/units', getAllUnit);
 router.post('/unit', permit("admin"), upload.single('file'), addpropertyUnit);
 router.get('/unit/:propertyid', getAllpropertyUnit);
-router.get('/unit/:id', getUnitById);
+router.get('/unit/single/unitid', getUnitById);
 router.get('/unit/image/:id', getunitImage);
 router.patch('/unit/update/:id', permit("admin"), updatepropertyUnit);
 router.delete('/unit/delete/:id', permit("admin"), deletepropertyUnit);

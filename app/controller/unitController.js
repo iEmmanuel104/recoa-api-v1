@@ -10,7 +10,7 @@ const getAllUnit = async (req, res) => {
         const units = await Unit.findAll();
         res.status(200).json({ msg: "All units", units });
     } catch (error) {
-        console.log(error);s
+        console.log(error);
         res.status(500).send(error.message);
     }
 };
@@ -100,6 +100,7 @@ const getUnitById = async (req, res) => {
     
         res.status(404).send('Unit with the specified ID does not exists');
     } catch (error) {
+        console.log(error);
         res.status(500).send(error.message);
     }
 };
