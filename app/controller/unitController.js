@@ -106,17 +106,25 @@ const getAllpropertyUnit = async (req, res) => {
 
 const getUnitById = async (req, res) => {
     try {
-        const { unitid } = req.body;
+        const { id } = req.params;
         const unit = await Unit.findOne({
-            where: { id: unitid },
-        });
-        if (unit) {
-            return res.status(200).json({ unit });
+                where: { id: id },  
+                include: [
+                    { 
+                        model: Property,
+                        as: 'property',
+                    },
+                    {
+                        model: User,
+                        as: 'user',
+                    }
+                ]
+            });
+        if (!unit) {
+            throw new Error('Unit with the specified ID does not exists');
         }
-    
-        res.status(404).send('Unit with the specified ID does not exists');
+        res.status(200).json({ msg: "Unit found", unit });
     } catch (error) {
-        console.log(error);
         res.status(500).send(error.message);
     }
 };
