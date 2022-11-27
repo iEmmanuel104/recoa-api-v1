@@ -107,19 +107,7 @@ const getAllpropertyUnit = async (req, res) => {
 const getUnitById = async (req, res) => {
     try {
         const { id } = req.params;
-        const unit = await Unit.findOne({
-                where: { id: id },  
-                include: [
-                    { 
-                        model: Property,
-                        as: 'Property',
-                    },
-                    {
-                        model: User,
-                        as: 'User',
-                    }
-                ]
-            });
+        const unit = await Unit.findOne({ where: { id: id }});
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
