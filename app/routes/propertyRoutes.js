@@ -38,7 +38,7 @@ router.post('/joinwaitlist/:id', joinPropertyWaitlist);
 router.get('/waitlist/:id',permit("admin"), getPropertyWaitlist);
 
 // property-unit routes
-router.get('/unit', getAllUnit);
+router.get('/unit/', getAllUnit);
 router.post('/unit', permit("admin"), upload.single('file'), addpropertyUnit);
 router.get('/unit/:propertyid', getAllpropertyUnit);
 router.get('/singleunit/:id', getUnitById);
