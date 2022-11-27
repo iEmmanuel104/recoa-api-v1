@@ -88,11 +88,11 @@ const getAllpropertyUnit = async (req, res) => {
     }
 };
 
-const getpropertyUnitById = async (req, res) => {
+const getUnitById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { unitid } = req.params;
         const unit = await Unit.findOne({
-            where: { id: id },
+            where: { id: unitid },
         });
         if (unit) {
             return res.status(200).json({ unit });
@@ -265,7 +265,7 @@ module.exports = {
     getAllUnit,
     addpropertyUnit,
     getAllpropertyUnit,
-    getpropertyUnitById,
+    getUnitById,
     getunitImage,
     updatepropertyUnit,
     deletepropertyUnit,
