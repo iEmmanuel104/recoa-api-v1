@@ -8,7 +8,8 @@ const {
     Adminlogout,
     Createinvestor,
     Investorlogin,
-    GetAllInvestors
+    GetAllInvestors,
+    DeleteInvestor
 
 } = require('../controller/userController.js');
 
@@ -20,6 +21,7 @@ router.post('/login', Adminlogin);
 router.post('/logout', permit("admin"), Adminlogout);
 router.post('/createinvestor', permit("admin"), Createinvestor);
 router.post('/investorlogin', Investorlogin);
-router.get('/investors', GetAllInvestors)
+router.get('/investors', GetAllInvestors);
+router.delete('/investor/:id', permit("admin"), DeleteInvestor);
 
 module.exports = router;

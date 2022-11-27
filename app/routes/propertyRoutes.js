@@ -14,6 +14,7 @@ const {
 } = require('../controller/propertyController.js');
 
 const {
+    getAllUnit,
     addpropertyUnit,
     getAllpropertyUnit,
     getpropertyUnitById,
@@ -37,8 +38,9 @@ router.post('/joinwaitlist/:id', joinPropertyWaitlist);
 router.get('/waitlist/:id',permit("admin"), getPropertyWaitlist);
 
 // property-unit routes
+router.get('/:id/units', getAllUnit);
 router.post('/unit', permit("admin"), upload.single('file'), addpropertyUnit);
-router.get('/unit/property/:id', getAllpropertyUnit);
+router.get('/unit/:propertyid', getAllpropertyUnit);
 router.get('/unit/:id', getpropertyUnitById);
 router.get('/unit/image/:id', getunitImage);
 router.patch('/unit/update/:id', permit("admin"), updatepropertyUnit);

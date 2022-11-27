@@ -1,6 +1,6 @@
 const db = require("../../models");
 const Property = db.Property;
-const Unit = db.Unit;
+const Unit = db.Unit;     
 const Waitlist = db.Waitlist;
 const Op = require("sequelize").Op;
 

@@ -214,6 +214,20 @@ const GetAllInvestors = async (req, res) => {
     }
 }
 
+const DeleteInvestor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const investor = await User.findOne({ where: { id } });
+        if (!investor) {
+            return res.status(400).json({ message: "Investor does not exist" });
+        }
+        await investor.destroy();
+        res.status(200).json({ message: "Investor deleted successfully" });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
+
 module.exports = {
     registerAdmin,
     verifyAdmin,
@@ -221,5 +235,6 @@ module.exports = {
     Adminlogout,
     Createinvestor,
     Investorlogin,
-    GetAllInvestors
+    GetAllInvestors,
+    DeleteInvestor
 }

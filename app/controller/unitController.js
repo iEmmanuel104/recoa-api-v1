@@ -5,6 +5,14 @@ const User = db.User;
 const Op = require('sequelize').Op;
 const path = require('path');
 
+const getAllUnit = async (req, res) => {
+    try {
+        const units = await Unit.findAll();
+        res.status(200).json({ units });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
 const addpropertyUnit = async (req, res) => {
     try {
         const { propertyId, name, description, price, count } = req.body;
@@ -61,9 +69,9 @@ const addpropertyUnit = async (req, res) => {
 
 const getAllpropertyUnit = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { propertyid } = req.params;
         const property = await Property.findOne({
-            where: { id: id },
+            where: { id: propertyid },
         });
         if (!property) {
             throw new Error('Property with the specified ID does not exists');
@@ -253,6 +261,7 @@ const getreservedpropertyUnit = async (req, res) => {
 
 
 module.exports = {
+    getAllUnit,
     addpropertyUnit,
     getAllpropertyUnit,
     getpropertyUnitById,
@@ -262,4 +271,5 @@ module.exports = {
     searchpropertyUnit,
     reservepropertyUnit,
     getreservedpropertyUnit,
+
 }
