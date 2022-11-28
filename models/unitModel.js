@@ -59,13 +59,13 @@ module.exports = (sequelize, DataTypes) => {
     Unit.associate = (models) => {
         Unit.belongsTo(models.Property, {
             foreignKey: 'propertyId',
-            // onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
+            onDelete: 'CASCADE',
+            onUpdate : 'CASCADE'
         });
         Unit.belongsTo(models.User, {
             foreignKey: 'userId',
-            // onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
+            onDelete: 'CASCADE',
+            onUpdate : 'CASCADE'
         });
 
     };

@@ -34,6 +34,9 @@ const addpropertyUnit = async (req, res) => {
         if (!count) {
             throw new Error('Count is required');
         }
+        if (!req.file) {
+            throw new Error('unit Image is required');
+        }
         if (!mimetype.startsWith('image')) {
             throw new Error('Please upload an image file');
         }

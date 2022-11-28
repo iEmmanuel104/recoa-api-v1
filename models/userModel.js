@@ -50,11 +50,11 @@ module.exports = (sequelize, DataTypes) => {
     User.associate = (models) => {
         User.hasMany(models.Unit, {
             onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
+            onUpdate : 'CASCADE',
         });
         User.hasMany(models.Property, {
             onDelete: 'CASCADE',
-            // onUpdate : 'CASCADE'
+            onUpdate : 'CASCADE'
         });
     };
 
