@@ -129,7 +129,7 @@ const updatepropertyUnit = async (req, res) => {
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        const updatedUnit = await Unit.update(
+        const [updatedUnit] = await Unit.update(
             {
                 name,
                 description,
@@ -140,7 +140,11 @@ const updatepropertyUnit = async (req, res) => {
                 where: { id: id },
             },
         );
-        res.status(200).json({ msg: "Unit updated", updatedUnit });
+        if (updatedUnit) {
+            const updatedUnit = await Unit.findOne({ where: { id: id } });
+            res.status(200).json({ unit: updatedUnit, msg: "Unit updated" });
+        }
+        throw new Error('Unit not found');
     } catch (error) {
         res.status(500).send(error.message);
     }
