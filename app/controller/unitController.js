@@ -94,7 +94,7 @@ const getAllpropertyUnit = async (req, res) => {
 const getUnitById = async (req, res) => {
     try {
         const { id } = req.params;
-        const unit = await Unit.findOne({ where: { id: id }});
+        const unit = await Unit.findOne({ where: { id: id, unitstatus: 'available' } });
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
@@ -204,7 +204,7 @@ const reservepropertyUnit = async (req, res) => {
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        if (unit.count <= 0) {
+        if (unit.unitstatus === 'reserved') {
             throw new Error('Unit is not available');
         }        
         const user = await User.findOne({
@@ -221,6 +221,7 @@ const reservepropertyUnit = async (req, res) => {
             {
                 count: unit.count - 1,
                 userId: userId,
+                unitstatus: 'reserved',
             },
             {
                 where: { id: unitId },
@@ -245,6 +246,7 @@ const getreservedpropertyUnit = async (req, res) => {
             {
                 where: {
                     propertyId: id,
+                    unitstatus: 'reserved',
                     userId: {
                         [Op.ne]: null,
                     },
