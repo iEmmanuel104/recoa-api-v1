@@ -41,8 +41,9 @@ const addpropertyUnit = async (req, res) => {
             throw new Error('Please upload an image file');
         }
         const UnitAlreadyExists = await Unit.findOne({
-            where: { name: name },
+            where: { name: name },    
         });
+    
         if (UnitAlreadyExists) {
             throw new Error('Unit with the specified name already exists');
         }
@@ -111,6 +112,8 @@ const getunitImage = async (req, res) => {
             where: { id: id },
         });
         if (unit.data) {
+            const imagePath = path.join(__dirname, `../../uploads/${unit.data}`);
+
             return res.status(200).sendFile(path.join(__dirname, `../../images/${unit.data}`));
         }
         res.status(404).send('Unit with the specified ID does not exists');
@@ -197,7 +200,7 @@ const searchpropertyUnit = async (req, res) => {
 const reservepropertyUnit = async (req, res) => {
     try {
         const { unitId } = req.params;
-        const { userId } = req.body;
+        const { userId, unitcount } = req.body;
         const unit = await Unit.findOne({
             where: { id: unitId },
         });
@@ -206,7 +209,11 @@ const reservepropertyUnit = async (req, res) => {
         }
         if (unit.unitstatus === 'reserved') {
             throw new Error('Unit is not available');
-        }        
+        }
+        if (unit.count < unitcount) {
+            throw new Error('Only ' + unit.count + ' units are available');
+            }
+                    
         const user = await User.findOne({
             where: { id: userId },
         });
@@ -216,12 +223,23 @@ const reservepropertyUnit = async (req, res) => {
         if (user.user_type !== 'investor') {
             throw new Error('Only investor can reserve a unit');
         }
+        const availableUnit = unit.count - unitcount;
+        // const unitcountstatus = (availableUnit === 0) ? 'reserved' : 'available';
+        const unitcountstatus = (availableUnit) => {
+            if (availableUnit === 0) {
+                return 'reserved';
+            } else {
+                return 'available';
+            }
+        };
+
+        const statusreserved = unitcountstatus(availableUnit);
 
         const reservedUnit = await Unit.update(
             {
-                count: unit.count - 1,
+                count: availableUnit,
                 userId: userId,
-                unitstatus: 'reserved',
+                unitstatus: statusreserved,
             },
             {
                 where: { id: unitId },

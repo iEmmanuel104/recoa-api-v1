@@ -56,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
             as: 'properties',
             foreignKey: 'waitlist_id',
             onDelete: 'CASCADE',
+            onUpdate : 'CASCADE'
         });
     };
 

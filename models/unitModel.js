@@ -62,10 +62,12 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'CASCADE',
             onUpdate : 'CASCADE'
         });
-        Unit.belongsTo(models.User, {
-            foreignKey: 'userId',
+        Unit.belongsToMany(models.User, {
+            through: 'UserUnit',
+            foreignKey: 'unit_Id',
+            as: 'users',
             onDelete: 'CASCADE',
-            onUpdate : 'CASCADE'
+            onUpdate : 'CASCADE'   
         });
 
     };

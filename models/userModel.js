@@ -2,6 +2,12 @@ const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define("User", {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false
+    },
     username: {
       type: DataTypes.STRING,
         allowNull: false,
@@ -48,7 +54,10 @@ module.exports = (sequelize, DataTypes) => {
       return values;
     };
     User.associate = (models) => {
-        User.hasMany(models.Unit, {
+        User.belongsToMany(models.Unit, {
+            through: 'UserUnit',
+            as: 'units',
+            foreignKey: 'user_id',
             onDelete: 'CASCADE',
             onUpdate : 'CASCADE',
         });

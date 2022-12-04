@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         name: {
             type: DataTypes.STRING,
+            unique: true,
             allowNull: false
         },
         location: {
@@ -18,17 +19,31 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM(["waitlist", "live"]),
             defaultValue: 'waitlist',
             allowNull: false
-        }
+        },
+        description: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        type: {
+            type: DataTypes.STRING,
+        },
+        imagename: {
+            type: DataTypes.STRING,
+        },
+        data: {
+            type: DataTypes.BLOB('long'),
+        },
+        
 
     }, {
         tableName: 'property',
         timestamps: false,
         underscored: true,
-        hooks: {
-            beforeCreate(property) {
-                property.name = property.name.toLowerCase();
-            }
-        }
+        // hooks: {
+        //     beforeCreate(property) {
+        //         property.name = property.name.toLowerCase();
+        //     }
+        // }
     });
 
     Property.associate = (models) => {

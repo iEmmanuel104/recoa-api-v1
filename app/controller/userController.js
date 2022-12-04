@@ -106,7 +106,8 @@ const Adminlogin = async (req, res) => {
         res.status(200).json({
             message: "Login successful", 
             RefreshToken: REFRESH_TOKEN,
-            AccessToken: ACCESS_TOKEN 
+            AccessToken: ACCESS_TOKEN,
+            user
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -195,7 +196,7 @@ const Investorlogin = async (req, res) => {
             message: "Login successful",
             RefreshToken: REFRESH_TOKEN,
             AccessToken: ACCESS_TOKEN,
-            userId: userid
+            user
         });
     } catch (error) {
         res.status(500).send(error.message);

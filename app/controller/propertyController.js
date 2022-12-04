@@ -43,7 +43,7 @@ const getPropertyById = async (req, res) => {
 
 const createProperty = async (req, res) => {
     try {
-        const { name, location, status } = req.body;
+        const { name, location, status, description } = req.body;
 
         // validate request
         if (!name) {
@@ -52,30 +52,70 @@ const createProperty = async (req, res) => {
         if (!location) {
             throw new Error("Location is required");
         }
+        if (!description) {
+            throw new Error("Property Description is required");
+        }
+        if (!status) {
+            throw new Error("Status is required");
+        }
+
         const PropertyAlreadyExists = await Property.findOne({
             where: { name: name },
         });
-        if (PropertyAlreadyExists) {
-            throw new Error("Property with the specified name already exists");
+        if (!PropertyAlreadyExists) {
+            const property = await Property.create(
+                {
+                    name,
+                    location,
+                    status,
+                    description,                
+                },
+            );
+            res.status(201).json({property, msg: "Property created successfully" });
         }
-
-        const property = await Property.create(
-            {
-                name,
-                location,
-                status,
-            },
-        );
-        res.status(201).json({property});
+        throw new Error ("property with specified name already exists")
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+};
+
+const uploadpropertyimage = async (req, res) => {
+    try {
+        const {propertyId} = req.body
+        const { mimetype, originalname, filename } = req.file;
+        const PropertyAlreadyExists = await Property.findOne({
+            where: { id:propertyId },
+        });
+        if (!PropertyAlreadyExists) {
+            throw new Error("property with specified name already exists")
+        }
+        if (!req.file) {
+            throw new Error('unit Image is required');
+        }
+        const [uploadedimages] = await Property.update(
+            {
+                type: mimetype,
+                imagename: originalname,
+                data: filename,
+            },
+            {
+                where: {id: propertyId}
+            }
+        )
+        if (uploadedimages) {
+            const updatedProperty = await Property.findOne({ where: { id: id } });
+            return res.status(200).json({ property: updatedProperty });
+        }
+
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 };
 
 const updateProperty = async (req, res) => {
     try {
         const { id } = req.params;
-        let { name, location, status } = req.body;
+        let { name, location, status, description } = req.body;
         if (name) {
             const NameAlreadyExists = await Property.findOne({
                 where: { name: name,},
@@ -90,6 +130,7 @@ const updateProperty = async (req, res) => {
                 name,
                 location,
                 status,
+                description
             },
             {
                 where: { id: id },

@@ -30,7 +30,7 @@ const {
 //property routes
 router.get('/', getAllProperty);
 router.get('/:id', getPropertyById);
-router.post('/', permit("admin"), createProperty);
+router.post('/', permit("admin"), upload.array("files", 5), createProperty);
 router.patch('/:id', permit("admin"), updateProperty);
 router.delete('/:id',permit("admin"), deleteProperty);
 router.post('/search',searchProperty);
