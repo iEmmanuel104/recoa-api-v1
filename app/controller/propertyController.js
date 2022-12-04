@@ -79,38 +79,38 @@ const createProperty = async (req, res) => {
     }
 };
 
-const uploadpropertyimage = async (req, res) => {
-    try {
-        const {propertyId} = req.body
-        const { mimetype, originalname, filename } = req.file;
-        const PropertyAlreadyExists = await Property.findOne({
-            where: { id:propertyId },
-        });
-        if (!PropertyAlreadyExists) {
-            throw new Error("property with specified name already exists")
-        }
-        if (!req.file) {
-            throw new Error('unit Image is required');
-        }
-        const [uploadedimages] = await Property.update(
-            {
-                type: mimetype,
-                imagename: originalname,
-                data: filename,
-            },
-            {
-                where: {id: propertyId}
-            }
-        )
-        if (uploadedimages) {
-            const updatedProperty = await Property.findOne({ where: { id: id } });
-            return res.status(200).json({ property: updatedProperty });
-        }
+// const uploadpropertyimage = async (req, res) => {
+//     try {
+//         const {propertyId} = req.body
+//         const { mimetype, originalname, filename } = req.file;
+//         const PropertyAlreadyExists = await Property.findOne({
+//             where: { id:propertyId },
+//         });
+//         if (!PropertyAlreadyExists) {
+//             throw new Error("property with specified name already exists")
+//         }
+//         if (!req.file) {
+//             throw new Error('unit Image is required');
+//         }
+//         const [uploadedimages] = await Property.update(
+//             {
+//                 type: mimetype,
+//                 imagename: originalname,
+//                 data: filename,
+//             },
+//             {
+//                 where: {id: propertyId}
+//             }
+//         )
+//         if (uploadedimages) {
+//             const updatedProperty = await Property.findOne({ where: { id: id } });
+//             return res.status(200).json({ property: updatedProperty });
+//         }
 
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-};
+//     } catch (error) {
+//         res.status(500).send(error.message);
+//     }
+// };
 
 const updateProperty = async (req, res) => {
     try {
