@@ -79,6 +79,7 @@ const createProperty = async (req, res) => {
     }
 };
 
+
 // const uploadpropertyimage = async (req, res) => {
 //     try {
 //         const {propertyId} = req.body
