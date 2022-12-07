@@ -136,13 +136,13 @@ const Createinvestor = async (req, res) => {
         if (user) {
             return res.status(400).json({ message: "User already exists" });
         }
-        const user_role = "investor";
+        // const user_role = "investor";
         // generate passwrod
         const password = "RECOA" + generatePassword(8);
 
         const newInvestor = await User.create({
             username,
-            user_type: user_role,
+            // user_type: user_role,
             email,
             password
         });
