@@ -44,8 +44,6 @@ const getPropertyById = async (req, res) => {
 const createProperty = async (req, res) => {
     try {
         const { name, location, status, description } = req.body;
-        const { mimetype, originalname, filename } = req.file;
-
 
         // validate request
         if (!name) {
@@ -60,9 +58,24 @@ const createProperty = async (req, res) => {
         if (!status) {
             throw new Error("Status is required");
         }
-        if (!req.file) {
-            throw new Error("Property Images are required");
+        if (!req.files) {
+            throw new Error("Property Image is required");
         }
+        if (!req.files.length > 5) {
+            throw new Error("Maximum of 5 images allowed");
+        }
+
+        // save image file name in req.files as an array
+        const imagenames = [];
+        const imagemimetype = [];
+        // save image data as bytea in req.files as an array
+        const imagefile = [];
+        req.files.forEach((file) => {
+            imagenames.push(file.originalname);
+            imagemimetype.push(file.mimetype);
+            imagefile.push(file.filename);
+        });
+
 
         const PropertyAlreadyExists = await Property.findOne({
             where: { name: name },
@@ -74,48 +87,40 @@ const createProperty = async (req, res) => {
                     location,
                     status,
                     description,
-                    type: mimetype,
-                    imagename: originalname,
-                    data: filename,
+                    type: `${imagemimetype}`,
+                    imagename: `${imagenames}`,
+                    data: `${imagefile}`,
                 },
             );
-            res.status(201).json({property, msg: "Property created successfully" });
+            return res.status(201).json({property, msg: "Property created successfully",imagefile: imagefile});
         }
         throw new Error ("property with specified name already exists")
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).send(error.message);
     }
 };
 
-
-// const uploadpropertyimage = async (req, res) => {
+// const getPropertyimages = async (req, res) => {
 //     try {
-//         const {propertyId} = req.body
-//         const { mimetype, originalname, filename } = req.file;
-//         const PropertyAlreadyExists = await Property.findOne({
-//             where: { id:propertyId },
+//         const { id } = req.params;
+//         const property = await Property.findOne({
+//             where: { id: id },
 //         });
-//         if (!PropertyAlreadyExists) {
-//             throw new Error("property with specified name already exists")
+//         if (!property) {
+//             res.status(404).send("Property with the specified ID does not exists");
 //         }
-//         if (!req.file) {
-//             throw new Error('unit Image is required');
+//         const imagenames = property.imagename.split(",");
+//         const imagefile = property.data.split(",");
+//         const imagemimetype = property.type.split(",");
+//         const images = [];
+//         for (let i = 0; i < imagenames.length; i++) {
+//             images.push({
+//                 imagename: imagenames[i],
+//                 imagefile: imagefile[i],
+//                 mimetype: imagemimetype[i],
+//             });
 //         }
-//         const [uploadedimages] = await Property.update(
-//             {
-//                 type: mimetype,
-//                 imagename: originalname,
-//                 data: filename,
-//             },
-//             {
-//                 where: {id: propertyId}
-//             }
-//         )
-//         if (uploadedimages) {
-//             const updatedProperty = await Property.findOne({ where: { id: id } });
-//             return res.status(200).json({ property: updatedProperty });
-//         }
-
+//         res.status(200).json({ images });
 //     } catch (error) {
 //         res.status(500).send(error.message);
 //     }

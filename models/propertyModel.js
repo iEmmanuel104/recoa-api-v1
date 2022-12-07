@@ -45,6 +45,12 @@ module.exports = (sequelize, DataTypes) => {
         //     }
         // }
     });
+    Property.prototype.toJSON = function () {
+        const values = Object.assign({}, this.get());
+
+        delete values.data;
+        return values;
+    };
 
     Property.associate = (models) => {
         Property.hasMany(models.Unit, {

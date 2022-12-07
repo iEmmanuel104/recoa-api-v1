@@ -8,10 +8,9 @@ const imageFilter = (req, file, cb) => {
     cb("Please upload only images.", false);
   }
   //  allow 5 images only
-  if (req.files.length > 5) {
-    return cb("Only 5 images allowed", false);
-  }
-
+  // if (req.file.length > 5) {
+  //   return cb("You can upload only 5 images.", false);
+  // }
 };
 
 var storage = multer.diskStorage({

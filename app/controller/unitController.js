@@ -111,13 +111,22 @@ const getunitImage = async (req, res) => {
         const unit = await Unit.findOne({
             where: { id: id },
         });
-        if (unit.data) {
-            const imagePath = path.join(__dirname, `../../uploads/${unit.data}`);
-
-            return res.status(200).sendFile(path.join(__dirname, `../../images/${unit.data}`));
+        if (unit) {
+            const imagePath = path.join(__dirname, `../../images/${unit.data}`);
+            console.log (imagePath);
+            // send path to image
+            return res.status(200).sendFile(imagePath);
         }
         res.status(404).send('Unit with the specified ID does not exists');
+        // if (unit.data) {
+        //     console.log(unit.data);
+        //     const imagePath = path.join(__dirname, `../../images/${unit.data}`);
+
+        //     return res.status(200).sendFile(path.join(__dirname, `../../images/${unit.data}`));
+        // }
+        // res.status(404).send('Unit with the specified ID does not exists');
     } catch (error) {
+        console.log(error);
         res.status(500).send(error.message);
     }
 };
