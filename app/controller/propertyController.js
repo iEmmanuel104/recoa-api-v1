@@ -3,6 +3,8 @@ const Property = db.Property;
 const Unit = db.Unit;     
 const Waitlist = db.Waitlist;
 const Op = require("sequelize").Op;
+const path = require('path');
+
 
 const getAllProperty = async (req, res) => {
     try {
@@ -65,22 +67,21 @@ const createProperty = async (req, res) => {
             throw new Error("Maximum of 5 images allowed");
         }
 
-        // save image file name in req.files as an array
-        const imagenames = [];
-        const imagemimetype = [];
-        // save image data as bytea in req.files as an array
-        const imagefile = [];
-        req.files.forEach((file) => {
-            imagenames.push(file.originalname);
-            imagemimetype.push(file.mimetype);
-            imagefile.push(file.filename);
-        });
-
-
         const PropertyAlreadyExists = await Property.findOne({
             where: { name: name },
         });
         if (!PropertyAlreadyExists) {
+
+            // save image file name in req.files as an array
+            const imagenames = [];
+            const imagemimetype = [];
+            // save image data as bytea in req.files as an array
+            const imagefile = [];
+            req.files.forEach((file) => {
+                imagenames.push(file.originalname);
+                imagemimetype.push(file.mimetype);
+                imagefile.push(file.filename);
+            });            
             const property = await Property.create(
                 {
                     name,
@@ -88,7 +89,7 @@ const createProperty = async (req, res) => {
                     status,
                     description,
                     type: `${imagemimetype}`,
-                    imagename: `${imagenames}`,
+                    imagename: `${imagefile}`,
                     data: `${imagefile}`,
                 },
             );
@@ -100,31 +101,34 @@ const createProperty = async (req, res) => {
     }
 };
 
-// const getPropertyimages = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const property = await Property.findOne({
-//             where: { id: id },
-//         });
-//         if (!property) {
-//             res.status(404).send("Property with the specified ID does not exists");
-//         }
-//         const imagenames = property.imagename.split(",");
-//         const imagefile = property.data.split(",");
-//         const imagemimetype = property.type.split(",");
-//         const images = [];
-//         for (let i = 0; i < imagenames.length; i++) {
-//             images.push({
-//                 imagename: imagenames[i],
-//                 imagefile: imagefile[i],
-//                 mimetype: imagemimetype[i],
-//             });
-//         }
-//         res.status(200).json({ images });
-//     } catch (error) {
-//         res.status(500).send(error.message);
-//     }
-// };
+const getpropertyimages = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const property = await Property.findOne({
+            where: { id: id },
+        });
+        if (!property) {
+            res.status(404).send("Property with the specified ID does not exists");
+        }
+        const imagenames = property.dataValues.imagename;
+        const imagenamesarray = imagenames.split(",");
+        const imagearray = [];
+        imagenamesarray.forEach((image) => {
+            const imagepath = path.join(__dirname, `../../images/${image}`);
+            const normalizepath = path.normalize(imagepath.replace(/\\/g, "/"));
+            imagearray.push(normalizepath);
+        });
+
+        await res.status(200).json({ msg: "Property inage paths", imagearray });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error.message);
+    }
+};
+
+
+
 
 const updateProperty = async (req, res) => {
     try {
@@ -293,6 +297,7 @@ module.exports = {
     getAllProperty,
     getPropertyById,
     createProperty,
+    getpropertyimages,
     updateProperty,
     deleteProperty,
     searchProperty,

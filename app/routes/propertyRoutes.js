@@ -6,6 +6,7 @@ const {
     getAllProperty,
     getPropertyById,
     createProperty,
+    getpropertyimages,
     updateProperty,
     deleteProperty,
     searchProperty,
@@ -31,6 +32,7 @@ const {
 router.get('/', getAllProperty);
 router.get('/:id', getPropertyById);
 router.post('/', permit("admin"), upload.array("file", 5), createProperty);
+router.get('/image/:id', getpropertyimages);
 router.patch('/:id', permit("admin"), updateProperty);
 router.delete('/:id',permit("admin"), deleteProperty);
 router.post('/search',searchProperty);
