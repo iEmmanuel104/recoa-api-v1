@@ -44,6 +44,8 @@ const getPropertyById = async (req, res) => {
 const createProperty = async (req, res) => {
     try {
         const { name, location, status, description } = req.body;
+        const { mimetype, originalname, filename } = req.file;
+
 
         // validate request
         if (!name) {
@@ -58,6 +60,9 @@ const createProperty = async (req, res) => {
         if (!status) {
             throw new Error("Status is required");
         }
+        if (!req.file) {
+            throw new Error("Property Images are required");
+        }
 
         const PropertyAlreadyExists = await Property.findOne({
             where: { name: name },
@@ -68,7 +73,10 @@ const createProperty = async (req, res) => {
                     name,
                     location,
                     status,
-                    description,                
+                    description,
+                    type: mimetype,
+                    imagename: originalname,
+                    data: filename,
                 },
             );
             res.status(201).json({property, msg: "Property created successfully" });

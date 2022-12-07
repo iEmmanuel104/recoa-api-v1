@@ -14,7 +14,7 @@ const getAllUnit = async (req, res) => {
     }
 };
 
-const addpropertyUnit = async (req, res) => {
+const addpropertyUnit = async (req, res) => {   
     try {
         const { propertyId, name, description, price, count } = req.body;
         const { mimetype, originalname, filename } = req.file;
