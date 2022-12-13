@@ -46,6 +46,9 @@ const getPropertyById = async (req, res) => {
 const createProperty = async (req, res) => {
     try {
         const { name, location, status, description } = req.body;
+        const {} = req.files;
+
+        console.log (req.files)
 
         // validate request
         if (!name) {
@@ -93,7 +96,7 @@ const createProperty = async (req, res) => {
                     data: `${imagefile}`,
                 },
             );
-            return res.status(201).json({property, msg: "Property created successfully",imagefile: imagefile});
+            return res.status(201).json({property, msg: "Property created successfully"});
         }
         throw new Error ("property with specified name already exists")
     } catch (error) {
@@ -104,6 +107,7 @@ const createProperty = async (req, res) => {
 const getpropertyimages = async (req, res) => {
     try {
         const { id } = req.params;
+        const {index} = req.query
         const property = await Property.findOne({
             where: { id: id },
         });
@@ -112,23 +116,23 @@ const getpropertyimages = async (req, res) => {
         }
         const imagenames = property.dataValues.imagename;
         const imagenamesarray = imagenames.split(",");
+        console.log(imagenamesarray)
         const imagearray = [];
-        imagenamesarray.forEach((image) => {
-            const imagepath = path.join(__dirname, `../../images/${image}`);
-            const normalizepath = path.normalize(imagepath.replace(/\\/g, "/"));
-            imagearray.push(normalizepath);
-        });
 
-        await res.status(200).json({ msg: "Property inage paths", imagearray });
+        for (let i=0; i<imagenamesarray.length; i++ ) {
+            let image = imagenamesarray[i];
+            const imagepath = path.join(__dirname, `../../images/${image}`);
+            imagearray.push(imagepath);
+            console.log(imagepath)
+        }
+
+        await res.status(200).sendFile(imagearray[`${index}`])
 
     } catch (error) {
         console.log(error);
         res.status(500).send(error.message);
     }
 };
-
-
-
 
 const updateProperty = async (req, res) => {
     try {
