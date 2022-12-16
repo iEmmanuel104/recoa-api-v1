@@ -116,17 +116,23 @@ const getpropertyimages = async (req, res) => {
         }
         const imagenames = property.dataValues.imagename;
         const imagenamesarray = imagenames.split(",");
-        console.log(imagenamesarray)
+        if (index > imagenamesarray.length || index === '0') {
+            throw new Error("index is out of range");
+        }
+
+        const indexed = index - 1;
+        // console.log(imagenamesarray)
         const imagearray = [];
+        
 
         for (let i=0; i<imagenamesarray.length; i++ ) {
             let image = imagenamesarray[i];
             const imagepath = path.join(__dirname, `../../images/${image}`);
             imagearray.push(imagepath);
-            console.log(imagepath)
+            // console.log(imagepath)
         }
 
-        await res.status(200).sendFile(imagearray[`${index}`])
+        await res.status(200).sendFile(imagearray[`${indexed}`])
 
     } catch (error) {
         console.log(error);
