@@ -1,6 +1,7 @@
 const db = require('../../models');
 const Unit = db.Unit;
 const Property = db.Property;
+const UserUnit = db.UserUnit;
 const User = db.User;
 const Op = require('sequelize').Op;
 const path = require('path');
@@ -247,13 +248,17 @@ const reservepropertyUnit = async (req, res) => {
         const reservedUnit = await Unit.update(
             {
                 count: availableUnit,
-                userId: userId,
                 unitstatus: statusreserved,
             },
             {
                 where: { id: unitId },
             },
         );
+        const reservecount = await UserUnit.create({
+            unitcount: unitcount,
+        });
+        await user.addUnit(unit);
+        // await unit.addUser(user);
         res.status(200).json({ msg: "Unit reserved", reservedUnit });
     } catch (error) {
         res.status(500).send(error.message);
@@ -262,34 +267,24 @@ const reservepropertyUnit = async (req, res) => {
 
 const getreservedpropertyUnit = async (req, res) => {
     try {
-        const { id } = req.params;
-        const property = await Property.findOne({
-            where: { id: id },
+        const { userId } = req.params;
+        const user = await User.findOne({
+            where: { id: userId },
+            include: [{
+                model: Unit,
+                as: 'units',
+            }]
         });
-        if (!property) {
-            throw new Error('Property with the specified ID does not exists');
+        if (!user) {
+            throw new Error('User with the specified ID does not exists');
         }
-        const units = await Unit.findAll(
-            {
-                where: {
-                    propertyId: id,
-                    unitstatus: 'reserved',
-                    userId: {
-                        [Op.ne]: null,
-                    },
-                },
-            },
-        );
-        const user = units.map(async (unit) => {
-            const user = await User.findOne({
-                where: { id: unit.userId },
-            });
-            return user;
-        });
-        const users = await Promise.all(user);
-        res.status(200).json({ msg: "All reserved units for this property", units, users });
+        if (user.user_type !== 'investor') {
+            throw new Error('Only investor can reserve a unit');
+        }
+        res.status(200).json({ msg: "All reserved units for this user", user });
     } catch (error) {
         res.status(500).send(error.message);
+        console.log(error);
     }
 };      
 

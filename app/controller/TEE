@@ -1,0 +1,220 @@
+#include <PS2X_lib.h>  //gamepad library for arduino
+#define STOP 0         // macro for the stop state
+#define CCW  1           // macro for the stop state
+#define CW   2             // macro for the stop state
+
+#define  BASE_JOINT 0       // place holder for base joint
+#define  SHOULDER_JOINT 1   // place holder for shoulder joint
+#define  ELBOW_JOINT 2      // place holder for elbow joint
+#define  WRIST_JOINT 3      // place holder for wrist joint
+#define  GRIPPER 4          // place holder for gripper
+
+//****************************************** MOTOR PINS DEFINITION **********************************
+#define BASE_MOTOR_A 5         
+#define BASE_MOTOR_B 4
+#define SHOULDER_MOTOR_A 3
+#define SHOULDER_MOTOR_B 2
+#define ELBOW_MOTOR_A 9
+#define ELBOW_MOTOR_B 8
+#define WRIST_MOTOR_A 6
+#define WRIST_MOTOR_B 7
+#define GRIPPER_MOTOR_A 14
+#define GRIPPER_MOTOR_B 15
+
+#define LED 16  //********************************* GRIPPER LED***************************************
+
+PS2X ps2x; // create PS2 Controller Class
+
+//right now, the library does NOT support hot pluggable controllers, meaning
+//you must always either restart your Arduino after you conect the controller,
+//or call config_gamepad(pins) again after connecting the controller.
+
+int error = 0; // error code
+byte type = 0; // variable to hold the controller type
+byte vibrate = 0; // variable to hold the level of vibration 
+const int jointA[] = {BASE_MOTOR_A, SHOULDER_MOTOR_A, ELBOW_MOTOR_A, WRIST_MOTOR_A, GRIPPER_MOTOR_A} ; // array to hold motor positive pins
+const int jointB[] = {BASE_MOTOR_B, SHOULDER_MOTOR_B, ELBOW_MOTOR_B, WRIST_MOTOR_B, GRIPPER_MOTOR_B} ; // array to hold motor negative pins
+boolean ledState = true;
+
+
+void setup() { //configuring the program (this run only once per power cycle)
+  Serial.begin(57600);
+
+
+  error = ps2x.config_gamepad(13, 11, 10, 12, true, true); 
+  //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
+  for (int i = 0; i < 5; i++) {
+    pinMode(jointA[i], OUTPUT); //set mptor pins as output 
+    pinMode(jointB[i], OUTPUT);
+  }
+  pinMode(LED, OUTPUT);//set led pin as output 
+
+  type = ps2x.readType(); //check the type of the gamepad
+
+}
+
+void loop() { // the main program(this runs repeatedly)
+
+  digitalWrite(LED, ledState);// write the ledstate to the led
+
+
+  if (error == 1) //skip loop if no controller found
+    return;
+
+
+  else { //DualShock Controller
+
+    ps2x.read_gamepad(false, vibrate);          //read controller and set large motor to spin at 'vibrate' speed
+
+
+    vibrate = ps2x.Analog(PSAB_GREEN);        //this will set the large motor vibrate speed based on
+    //how hard you press the green (triangle) button
+
+    if (ps2x.NewButtonState())               //will be TRUE if any button changes state (on to off, or off to on)
+    {
+
+
+
+      if (ps2x.Button(PSB_PAD_RIGHT)) // if right button is pressed 
+      {
+        Joint(BASE_JOINT, CW); //move base joint clockwise
+
+      }
+
+      else if (ps2x.Button(PSB_PAD_LEFT))// if left button is pressed
+      {
+        Joint(BASE_JOINT, CCW); //move base joint counter clockwise
+      }
+      else //stop moving base motor
+      {
+        Joint(BASE_JOINT, STOP);
+      }
+
+      if (ps2x.Button(PSB_PAD_UP))// if up button is pressed
+      {
+        Joint(ELBOW_JOINT, CW);
+        Joint(SHOULDER_JOINT, CW);
+
+      }
+
+      else if (ps2x.Button(PSB_PAD_DOWN))
+      {
+        Joint(ELBOW_JOINT, CCW);
+        Joint(SHOULDER_JOINT, CCW);
+
+      }
+      else
+      {
+        Joint(SHOULDER_JOINT, STOP);
+        delay(10);
+        Joint(ELBOW_JOINT, STOP);
+
+      }
+      if (ps2x.Button(PSB_GREEN))
+      { Joint(WRIST_JOINT, CCW);
+      }
+      else if (ps2x.Button(PSB_BLUE))
+      {
+        Joint(WRIST_JOINT, CW);
+      }
+      else {
+        Joint(WRIST_JOINT, STOP);
+      }
+      if (ps2x.Button(PSB_L1))
+      { Joint(GRIPPER, CW);
+      }
+      else if (ps2x.Button(PSB_R1))
+      {
+        Joint(GRIPPER, CCW);
+      }
+      else {
+        Joint(GRIPPER, STOP);
+      }
+
+    }
+
+    if (ps2x.ButtonPressed(PSB_L2) || ps2x.ButtonPressed(PSB_R2)) // this function checks if L2 or R2 is pressed and toggle the LED
+    {
+      ledState = !ledState;
+    }
+
+    if (ps2x.Button(PSB_PINK) )
+    {
+      ledState = false;
+    }
+    else if (ps2x.Button(PSB_RED)) {
+      ledState = !false;
+    }
+//***************************************************READ THE LEFT ANALOG JOYSTICK
+    int Y = ps2x.Analog(PSS_RY);
+    if (Y >= 200)
+    {
+      Joint(ELBOW_JOINT, CCW);//Move elbow joint 
+    }
+
+    else if (Y <= 100)
+    {
+      Joint(ELBOW_JOINT, CW);
+    }
+
+    else if (ps2x.Button(PSB_PAD_UP) == 0 && ps2x.Button(PSB_PAD_DOWN) == 0)
+    //stop moving shoulder motor if up or down is not pressed and the analog stick is center 
+    {
+      Joint(ELBOW_JOINT, STOP);
+    }
+//***************************************************READ THE RIGHT ANALOG JOYSTICK
+    int Y1 = ps2x.Analog(PSS_LY);
+    if (Y1 >= 200)
+    {
+      Joint(SHOULDER_JOINT, CCW);
+    }
+
+    else if (Y1 <= 100)
+    {
+      Joint(SHOULDER_JOINT, CW);
+    }
+
+    else if (ps2x.Button(PSB_PAD_UP) == 0 && ps2x.Button(PSB_PAD_DOWN) == 0)
+    //stop moving elbow motor if up or down is not pressed and the analog stick is center
+    {
+      Joint(SHOULDER_JOINT, STOP);
+    }
+    int X1 = ps2x.Analog(PSS_LX);
+    if (X1 >= 200)
+    {
+      Joint(BASE_JOINT, CW);
+    }
+
+    else if (X1 <= 100)
+    {
+      Joint(BASE_JOINT, CCW);
+    }
+
+    else if (ps2x.Button(PSB_PAD_LEFT) == 0 && ps2x.Button(PSB_PAD_RIGHT) == 0)
+    {
+      Joint(BASE_JOINT, STOP);//stop moving base motor if left or right is not pressed and the analog stick is center
+    }
+
+  }
+  delay(50);
+}
+//******FUNCTION TO MOVE ANY MOTOR (ALL JOINTS AND GRIPPER **************
+// This function takes the motors positive and negative as parameters
+void Joint(int joint, int dir) {
+  int A = jointA[joint]; // motors'4 positive pin
+  int B = jointB[joint]; // motors' negative pin
+
+  if (dir == 1) {
+    digitalWrite(A, HIGH);
+    digitalWrite(B, LOW);
+  }
+  else if (dir == 2) {
+    digitalWrite(B, HIGH);
+    digitalWrite(A, LOW);
+  }
+  else { // set bothh motor pins low
+    digitalWrite(A, LOW);
+    digitalWrite(B, LOW);
+  }
+}
+++

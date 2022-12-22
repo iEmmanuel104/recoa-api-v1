@@ -69,6 +69,7 @@ const createProperty = async (req, res) => {
         if (!req.files.length > 5) {
             throw new Error("Maximum of 5 images allowed");
         }
+    
 
         const PropertyAlreadyExists = await Property.findOne({
             where: { name: name },
@@ -287,8 +288,9 @@ const getPropertyWaitlist = async (req, res) => {
             }],
 
         });
-        if (property) {
-            return res.status(200).json({ property });
+        const waitlists = property.waitlists;
+        if (waitlists) {
+            return res.status(200).json({waitlists });
         }
         res.status(404).send("Property with the specified ID does not exists");
     } catch (error) {
