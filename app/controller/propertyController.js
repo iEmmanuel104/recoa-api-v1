@@ -48,7 +48,7 @@ const createProperty = async (req, res) => {
         const { name, location, status, description } = req.body;
         const {} = req.files;
 
-        console.log (req.files)
+        // console.log (req.files)
 
         // validate request
         if (!name) {

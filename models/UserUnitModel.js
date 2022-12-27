@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const UserUnit = sequelize.define('UserUnit', {
-        unitcount: {
+        usercount: {
             type: DataTypes.INTEGER,  
             allowNull: false
         },
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      {
         tableName: 'UserUnit',
         timestamps: false,
-        underscored: true,
+        // underscored: true,
     }
     );
 
