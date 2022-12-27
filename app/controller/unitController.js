@@ -279,15 +279,25 @@ const reservepropertyUnit = async (req, res) => {
 
 const getreservedpropertyUnit = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { userId } = req.body;
+        const { unitId } = req.params;
+
+        const unit = await Unit.findOne({
+            where: { id: unitId },
+        });
+        if (!unit) {
+            throw new Error('Unit with the specified ID does not exists');
+        }
         const user = await User.findOne({
             where: { id: userId },
             include: [{
                 model: Unit,
                 as: 'units',
+                where: { id: unitId },
             }, {
                 model: UserUnit,
-                as: 'userunits',               
+                as: 'userunits',  
+                where: { unitId: unitId },             
             }]
         });
         if (!user) {
@@ -296,6 +306,7 @@ const getreservedpropertyUnit = async (req, res) => {
         if (user.user_type !== 'investor') {
             throw new Error('Only investor can reserve a unit');
         }
+
         res.status(200).json({ msg: "All reserved units for this user", user });
     } catch (error) {
         res.status(500).send(error.message);
