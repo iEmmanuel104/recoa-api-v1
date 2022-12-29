@@ -227,9 +227,7 @@ const reservepropertyUnit = async (req, res) => {
 
     // Check if there are enough units available
     if (unit.count < unitcount) {
-      return res
-        .status(400)
-        .json({ error: `Only ${unit.count} units are available` });
+      return res.status(400).json({ error: `Only ${unit.count} units are available` });
     }
 
     // Check if user exists
@@ -272,7 +270,7 @@ const reservepropertyUnit = async (req, res) => {
 
     res.json({ message: `Unit reserved: ${userreservedunitcount} counts of this unit have now been reserved by you`, reservedUnit });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ error: 'Server error' });
   }
 };
