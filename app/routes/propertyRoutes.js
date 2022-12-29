@@ -25,6 +25,7 @@ const {
     searchpropertyUnit,
     reservepropertyUnit,
     getreservedpropertyUnit,
+    getusersunderunit,
 } = require('../controller/unitController.js')
 
 
@@ -50,5 +51,6 @@ router.delete('/unit/delete/:id', permit("admin"), deletepropertyUnit);
 router.post('/unit/search/:id', searchpropertyUnit);
 router.post('/unit/reserve/:unitId', permit("investor"), reservepropertyUnit);
 router.post('/unit/reserve/user/:unitId', permit("investor admin"), getreservedpropertyUnit);
+router.get('/unit/reserve/all/:unitId', permit("investor admin"), getusersunderunit);
 
 module.exports = router;

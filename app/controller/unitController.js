@@ -312,7 +312,39 @@ const getreservedpropertyUnit = async (req, res) => {
         res.status(500).send(error.message);
         console.log(error);
     }
-};      
+};  
+
+const getusersunderunit = async (req, res) => {
+    try {
+        const { unitId } = req.params;
+        const unit = await Unit.findOne({
+            where: { id: unitId },
+        });
+        if (!unit) {
+            throw new Error('Unit with the specified ID does not exists');
+        }
+        const users = await User.findAll({
+            include: [{
+                model: Unit,
+                as: 'units',
+                where: { id: unitId },
+            }, {
+                model: UserUnit,
+                as: 'userunits',
+                where: { unitId: unit },
+            }]
+        });
+        if (!users) {
+            throw new Error('No user has reserved this unit');
+        }
+        res.status(200).json({ msg: "All users under this unit", users });
+    } catch (error) {
+        res.status(500).send(error.message);
+        console.log(error);
+    }
+};
+
+
 
 
 module.exports = {
@@ -326,5 +358,6 @@ module.exports = {
     searchpropertyUnit,
     reservepropertyUnit,
     getreservedpropertyUnit,
+    getusersunderunit,
 
 }
