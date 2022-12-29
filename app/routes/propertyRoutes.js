@@ -49,6 +49,6 @@ router.patch('/unit/update/:id', permit("admin"), updatepropertyUnit);
 router.delete('/unit/delete/:id', permit("admin"), deletepropertyUnit);
 router.post('/unit/search/:id', searchpropertyUnit);
 router.post('/unit/reserve/:unitId', permit("investor"), reservepropertyUnit);
-router.get('/unit/reservedunits/:id', permit("admin"), getreservedpropertyUnit);
+router.post('/unit/reserve/user/:unitId', permit("investor admin"), getreservedpropertyUnit);
 
 module.exports = router;
