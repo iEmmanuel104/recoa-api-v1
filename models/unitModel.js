@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         tableName: 'unit',
         timestamps: false,
-        underscored: true,
+        // underscored: true,
         hooks: {
             beforeCreate(unit) {
                 unit.name = unit.name.toLowerCase();

@@ -258,13 +258,13 @@ const reservepropertyUnit = async (req, res) => {
     // append count value to unitcount in junction table UserUnit
       await user.addUnit(unit);
 
-      const junctionuser = await UserUnit.findOne({
-        where: { userId: userId, unitId: unitId },
-        })
+    //   const junctionuser = await UserUnit.findOne({
+    //     where: { userId: userId, unitId: unitId },
+    //     })
 
-        const userreservedunitcount = junctionuser.usercount + unitcount; 
+    //     const userreservedunitcount = junctionuser.usercount + unitcount; 
 
-        await junctionuser.update({ usercount: userreservedunitcount });
+    //     await junctionuser.update({ usercount: userreservedunitcount });
 
     // Associate user and unit
 
