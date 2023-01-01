@@ -1,7 +1,7 @@
 const db = require('../../models');
 const Unit = db.Unit;
 const Property = db.Property;
-const UserUnit = db.UserUnit;
+const Reserves = db.Reserves;
 const User = db.User;
 const Op = require('sequelize').Op;
 const path = require('path');
@@ -219,7 +219,6 @@ const reservepropertyUnit = async (req, res) => {
     if (!unit) {
       return res.status(404).json({ error: 'Unit not found' });
     }
-
     // Check if unit is available
     if (unit.unitstatus !== 'available') {
       return res.status(400).json({ error: 'Unit is not available' });
@@ -255,24 +254,28 @@ const reservepropertyUnit = async (req, res) => {
         where: { id: unitId },
       }
     );
-    // append count value to unitcount in junction table UserUnit
       await user.addUnit(unit);
+    //   save date, unit and user id to reserved unit table and increment reserveCount
+    const userreservedunitcount = await Reserves.findOne({
+        where: { userId: userId, unitId: unitId },
+    });
+    const reserveCount = userreservedunitcount ? userreservedunitcount.reserveCount + unitcount : unitcount;
+    
+    // SAVE TO RESERVES TABLE BY UPDATING OR CREATING A NEW RECORD FOR THE USER AND UNIT ID COMBINATION 
+    const reserved = await Reserves.upsert({
+        userId: userId,
+        unitId: unitId,
+        reserveDate: new Date(),
+        reserveCount: reserveCount,
+    });
 
-    //   const junctionuser = await UserUnit.findOne({
-    //     where: { userId: userId, unitId: unitId },
-    //     })
-
-    //     const userreservedunitcount = junctionuser.usercount + unitcount; 
-
-    //     await junctionuser.update({ usercount: userreservedunitcount });
-
-    // Associate user and unit
-
-    res.json({ message: `Unit reserved: ${userreservedunitcount} counts of this unit have now been reserved by you`, reservedUnit });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Server error' });
-  }
+    if (reserved) {
+        return res.status(200).json({ msg: 'Unit reserved successfully' });
+    }
+    return res.status(500).json({ error: 'Unit could not be reserved' });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 };
 
 const getreservedpropertyUnit = async (req, res) => {
@@ -286,64 +289,42 @@ const getreservedpropertyUnit = async (req, res) => {
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        const user = await User.findOne({
-            where: { id: userId },
-            include: [{
-                model: Unit,
-                as: 'units',
-                where: { id: unitId },
-            }, {
-                model: UserUnit,
-                as: 'userunits',  
-                where: { unitId: unitId },             
-            }]
-        });
+        const user = await User.findOne({ where: { id: userId } }); 
         if (!user) {
             throw new Error('User with the specified ID does not exists');
         }
-        if (user.user_type !== 'investor') {
-            throw new Error('Only investor can reserve a unit');
+        const reservedunit = await user.getUnits({
+            where: { id: unitId },
+        });
+        if (reservedunit.length === 0) {
+            throw new Error('User has not reserved this unit');
         }
-
-        res.status(200).json({ msg: "All reserved units for this user", user });
+        //  check reserve count
+        const userreservedunitcount = await Reserves.findOne({
+            where: { userId: userId, unitId: unitId },
+        });
+        if (userreservedunitcount) {
+            return res.status(200).json({ msg: "Unit reserved by user", reservedunit, reserveCount: userreservedunitcount.reserveCount });
+        }
+        return res.status(200).json({ msg: "Unit reserved by user", reservedunit });
     } catch (error) {
         res.status(500).send(error.message);
-        console.log(error);
     }
-};  
+}; 
 
 const getusersunderunit = async (req, res) => {
     try {
         const { unitId } = req.params;
-        const unit = await Unit.findOne({
-            where: { id: unitId },
-        });
+        const unit = await Unit.findOne({ where: { id: unitId } }); 
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        const users = await User.findAll({
-            include: [{
-                model: Unit,
-                as: 'units',
-                where: { id: unitId },
-            }, {
-                model: UserUnit,
-                as: 'userunits',
-                where: { unitId: unit },
-            }]
-        });
-        if (!users) {
-            throw new Error('No user has reserved this unit');
-        }
-        res.status(200).json({ msg: "All users under this unit", users });
+        const users = await unit.getUsers();       
+        return res.status(200).json({ msg: "Users under this unit", users });
     } catch (error) {
         res.status(500).send(error.message);
-        console.log(error);
     }
 };
-
-
-
 
 module.exports = {
     getAllUnit,
@@ -357,5 +338,4 @@ module.exports = {
     reservepropertyUnit,
     getreservedpropertyUnit,
     getusersunderunit,
-
 }
