@@ -3,6 +3,8 @@ const Unit = db.Unit;
 const Property = db.Property;
 const Reserves = db.Reserves;
 const User = db.User;
+// import sequelize transactions    
+const { sequelize, Sequelize } = require('../../models');
 const Op = require('sequelize').Op;
 const path = require('path');
 
@@ -142,7 +144,7 @@ const updatepropertyUnit = async (req, res) => {
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        const [updatedUnit] = await Unit.update(
+       await Unit.update(
             {
                 name,
                 description,
@@ -153,11 +155,11 @@ const updatepropertyUnit = async (req, res) => {
                 where: { id: id },
             },
         );
-        if (updatedUnit) {
-            const updatedUnit = await Unit.findOne({ where: { id: id } });
-            res.status(200).json({ unit: updatedUnit, msg: "Unit updated" });
-        }
-        throw new Error('Unit not found');
+        // return the full updated unit details
+        const updatedUnitDetails = await Unit.findOne({
+            where: { id: id },
+        });
+        res.status(200).json({ msg: "Unit updated", updatedUnitDetails });
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -208,79 +210,95 @@ const searchpropertyUnit = async (req, res) => {
 };
 
 const reservepropertyUnit = async (req, res) => {
-  const { unitId } = req.params;
-  const { userId, unitcount } = req.body;
+    const { unitId } = req.params;
+    const { userId, unitcount } = req.body;
 
-  try {
-    // Check if unit exists
-    const unit = await Unit.findOne({
-      where: { id: unitId },
-    });
-    if (!unit) {
-      return res.status(404).json({ error: 'Unit not found' });
-    }
-    // Check if unit is available
-    if (unit.unitstatus !== 'available') {
-      return res.status(400).json({ error: 'Unit is not available' });
-    }
+    try {
+        // use sequelize transaction
+        const result = await sequelize.transaction(async (t) => {
+            // Check if unit exists
+            const unit = await Unit.findOne({
+                where: { id: unitId },
+            });
+            if (!unit) {
+                throw new Error('Unit not found');
+            }
+            // Check if unit is available
+            if (unit.unitstatus !== 'available') {
+                throw new Error('Unit is not available');
+            }
 
-    // Check if there are enough units available
-    if (unit.count < unitcount) {
-      return res.status(400).json({ error: `Only ${unit.count} units are available` });
-    }
+            // Check if there are enough units available
+            if (unit.count < unitcount) {
+                throw new Error(`Only ${unit.count} units are available`);
+            }
 
-    // Check if user exists
-    const user = await User.findOne({
-      where: { id: userId },
-    });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+            // Check if user exists
+            const user = await User.findOne({
+                where: { id: userId },
+            });
+            if (!user) {
+                throw new Error('User not found');
+            }
 
-    // Check if user is an investor
-    if (user.user_type !== 'investor') {
-      return res.status(400).json({ error: 'Only investors can reserve a unit' });
-    }
+            // Check if user is an investor
+            if (user.user_type !== 'investor') {
+                throw new Error('Only investors can reserve a unit');
+            }
 
-    // Reserve unit
-    const availableUnit = unit.count - unitcount;
-    const unitcountstatus = availableUnit === 0 ? 'reserved' : 'available';
-    const reservedUnit = await Unit.update(
-      {
-        count: availableUnit,
-        unitstatus: unitcountstatus,
-      },
-      {
-        where: { id: unitId },
-      }
-    );
-      await user.addUnit(unit);
-    //   save date, unit and user id to reserved unit table and increment reserveCount
-    const userreservedunitcount = await Reserves.findOne({
-        where: { userId: userId, unitId: unitId },
-    });
-    const reserveCount = userreservedunitcount ? userreservedunitcount.reserveCount + unitcount : unitcount;
-    
-    // SAVE TO RESERVES TABLE BY UPDATING OR CREATING A NEW RECORD FOR THE USER AND UNIT ID COMBINATION 
-    const reserved = await Reserves.upsert({
-        userId: userId,
-        unitId: unitId,
-        reserveDate: new Date(),
-        reserveCount: reserveCount,
-    });
+            // Reserve unit
+            const availableUnit = unit.count - unitcount;
+            const unitcountstatus = availableUnit === 0 ? 'reserved' : 'available';
+            // increment count and update unit status
+            await Unit.update(
+                {
+                    count: availableUnit,
+                    unitstatus: unitcountstatus,
+                },
+                {
+                    where: { id: unitId },
+                },
+                { transaction: t }
+            );
 
-    if (reserved) {
-        return res.status(200).json({ msg: 'Unit reserved successfully' });
-    }
-    return res.status(500).json({ error: 'Unit could not be reserved' });
+            await user.addUnit(unit);
+
+            // Save date, unit and user id to reserved unit table and increment reserveCount
+
+            // find most recent by reserveDate if user has reserved a unit before
+            const userReservedUnitCount = await Reserves.findOne({
+                where: { userId: userId, unitId: unitId },
+                order: [['reserveDate', 'DESC']],
+            });
+            // find most recent reserveDate and increment reserveCount by unitcount as integer
+            const reserveCount = userReservedUnitCount
+                ? userReservedUnitCount.reserveCount + parseInt(unitcount)
+                : parseInt(unitcount);
+            
+
+            // Save to reserves table by updating or creating a new record for the user and unit id combination
+            const reserved = await Reserves.create(
+                {
+                    userId: userId,
+                    unitId: unitId,
+                    reserveDate: new Date(),
+                    reserveCount: reserveCount,
+                },
+                { transaction: t }
+            );
+
+            return { msg: 'Unit reserved successfully', reserved };
+        });
+        return res.status(200).json(result);
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 };
 
+
 const getreservedpropertyUnit = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId } = req.query;
         const { unitId } = req.params;
 
         const unit = await Unit.findOne({
@@ -299,12 +317,13 @@ const getreservedpropertyUnit = async (req, res) => {
         if (reservedunit.length === 0) {
             throw new Error('User has not reserved this unit');
         }
-        //  check reserve count
+        //  check reserve count for user and unit last reserved
         const userreservedunitcount = await Reserves.findOne({
             where: { userId: userId, unitId: unitId },
+            order: [['reserveDate', 'DESC']],
         });
         if (userreservedunitcount) {
-            return res.status(200).json({ msg: "Unit reserved by user", reservedunit, reserveCount: userreservedunitcount.reserveCount });
+            return res.status(200).json({ msg: "Unit reserved by user", reserveCount: userreservedunitcount.reserveCount });
         }
         return res.status(200).json({ msg: "Unit reserved by user", reservedunit });
     } catch (error) {
@@ -319,8 +338,20 @@ const getusersunderunit = async (req, res) => {
         if (!unit) {
             throw new Error('Unit with the specified ID does not exists');
         }
-        const users = await unit.getUsers();       
-        return res.status(200).json({ msg: "Users under this unit", users });
+        const users = await unit.getUsers();     
+        // check for all latest reserves for each user and return only last reserve
+        const userreservedunitcount = await Reserves.findAll({
+            where: { unitId: unitId },
+            order: [['reserveDate', 'DESC']],
+        });
+
+        // return only only last reserve for each user
+        const userreservedunitcountunique = userreservedunitcount.filter((item, index, self) => 
+            index === self.findIndex((t) => ( 
+                t.userId === item.userId
+            ))
+        )
+        return res.status(200).json({ msg: "Users under unit", users, userreservedunitcountunique });
     } catch (error) {
         res.status(500).send(error.message);
     }
