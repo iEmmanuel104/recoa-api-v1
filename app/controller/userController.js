@@ -3,6 +3,7 @@ const Property = db.Property;
 require('dotenv').config();
 const Unit = db.Unit;
 const User = db.User;
+const { sequelize, Sequelize } = require('../../models');
 const Op = require("sequelize").Op;
 const bcrypt = require("bcryptjs");
 const authService = require("../middlewares/auth.service.js");
@@ -11,45 +12,49 @@ const generatePassword = require('../middlewares/StringGenerator.js');
 
 const registerAdmin = async (req, res) => {
     try {
-        const { username, email, password, user_type } = req.body;
-        // generate code for verification
-        let usercode = Math.floor(100000 + Math.random() * 90000);
-        let admincode = Math.floor(Math.random()* (999999-100000+1)) + 100000;
-        const verification_code = await usercode.toString() + admincode.toString();
+        const result = await sequelize.transaction(async (t) => {
+            const { username, email, password, user_type } = req.body;
+            // generate code for verification
+            let usercode = Math.floor(100000 + Math.random() * 90000);
+            let admincode = Math.floor(Math.random()* (999999-100000+1)) + 100000;
+            const verification_code = await usercode.toString() + admincode.toString();
 
-        // check if email already exists
-        const userExist = await User.findOne({ where: { email } });
-        if (userExist) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
-        const user = await User.create({
-            username,
-            email,
-            password,
-            user_type,
-            verification_code
-        });        
-        
-        // send verification code to email
-        const mailOptions = {
-            email: email,
-            title: "RECOA Verification Code",
-            message: `Your verification code is ${usercode}`,
-        };
-        await sendMail(mailOptions);
+            // check if email already exists
+            const userExist = await User.findOne({ where: { email } });
+            if (userExist) {
+                return res.status(400).json({ message: "Email already exists" });
+            }
+            const user = await User.create({
+                username,
+                email,
+                password,
+                user_type,
+                verification_code
+            },
+            { transaction: t}
+            );        
+            
+            // send verification code to email
+            const mailOptions = {
+                email: email,
+                title: "RECOA Verification Code",
+                message: `Your verification code is ${usercode}`,
+            };
+            await sendMail(mailOptions);
 
-        const mailOptions2 = {
-            email: process.env.EMAIL_RECEIVER_ADDRESS,
-            title: "RECOA Admin request Verification Code",
-            message: `New Admin request for ${username}
-            ----------------------------------------------
-                     verification code is ${admincode}`,
-        };
-        await sendMail(mailOptions2);
+            const mailOptions2 = {
+                email: process.env.EMAIL_RECEIVER_ADDRESS,
+                title: "RECOA Admin request Verification Code",
+                message: `New Admin request for ${username}
+                ----------------------------------------------
+                        verification code is ${admincode}`,
+            };
+            await sendMail(mailOptions2);
 
-        res.status(201).json({ 
-            message: "User created, verification code sent to email, please verify" ,
-            user, code: verification_code });     
+            res.status(201).json({ 
+                message: "User created, verification code sent to email, please verify" ,
+                user, code: verification_code });     
+        });
 
     } catch (error) {
         res.status(500).send(error.message);
@@ -59,20 +64,22 @@ const registerAdmin = async (req, res) => {
 
 const verifyAdmin = async (req, res) => {
     try {
-        const { email, usercode, admincode } = req.body;
-        const verification_code = await usercode.toString() + admincode.toString();
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(400).json({ message: "User does not exist" });
-        }
-        if (user.verification_code !== verification_code) {
-            return res.status(400).json({ message: "Invalid verification code" });
-        }
-        user.user_type = "admin";
-        user.verification_code = null;
+        const result = await sequelize.transaction(async (t) => {
+            const { email, usercode, admincode } = req.body;
+            const verification_code = await usercode.toString() + admincode.toString();
+            const user = await User.findOne({ where: { email } });
+            if (!user) {
+                return res.status(400).json({ message: "User does not exist" });
+            }
+            if (user.verification_code !== verification_code) {
+                return res.status(400).json({ message: "Invalid verification code" });
+            }
+            user.user_type = "admin";
+            user.verification_code = null;
 
-        await user.save();
-        res.status(200).json({ message: "User verified, You can proceed to login" });
+            await user.save();
+            res.status(200).json({ message: "User verified, You can proceed to login" });
+        });
     } catch (error) {
         res.status(500).send(error.message);
         console.log(error);
@@ -131,36 +138,39 @@ const Adminlogout = async (req, res) => {
 
 const Createinvestor = async (req, res) => {
     try {
-        const { username, email} = req.body;
-        const user = await User.findOne({ where: { username } });
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-        // const user_role = "investor";
-        // generate passwrod
-        const password = "RECOA" + generatePassword(8);
+        const result = await sequelize.transaction(async (t) => {
+            const { username, email} = req.body;
+            const user = await User.findOne({ where: { username } });
+            if (user) {
+                return res.status(400).json({ message: "User already exists" });
+            }
+            // const user_role = "investor";
+            // generate passwrod
+            const password = "RECOA" + generatePassword(8);
 
-        const newInvestor = await User.create({
-            username,
-            // user_type: user_role,
-            email,
-            password
+            const newInvestor = await User.create({
+                username,
+                // user_type: user_role,
+                email,
+                password
+            },
+            { transaction: t});
+
+            const mailOptions = {
+                email: process.env.EMAIL_RECEIVER_ADDRESS,
+                title: "RECOA property Resesrvation Password",
+                message: `You just registered a new investor: ${username}
+                ----------------------------------------------
+                investor details:
+                username: ${username}
+                email: ${email}
+                password: ${password}`,
+            };
+            await sendMail(mailOptions);
+
+            res.status(201).json({ message: "New Investor has been created, password sent to email",
+            newInvestor, password: password });
         });
-
-        const mailOptions = {
-            email: process.env.EMAIL_RECEIVER_ADDRESS,
-            title: "RECOA property Resesrvation Password",
-            message: `You just registered a new investor: ${username}
-            ----------------------------------------------
-            investor details:
-            username: ${username}
-            email: ${email}
-            password: ${password}`,
-        };
-        await sendMail(mailOptions);
-
-        res.status(201).json({ message: "New Investor has been created, password sent to email",
-        newInvestor, password: password });
     } catch (error) {
         res.status(500).send(error.message);
         console.log(error);

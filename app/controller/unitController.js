@@ -19,57 +19,58 @@ const getAllUnit = async (req, res) => {
 
 const addpropertyUnit = async (req, res) => {   
     try {
-        const { propertyId, name, description, price, count } = req.body;
-        const { mimetype, originalname, filename } = req.file;
+        const result = await sequelize.transaction(async (t) => {
+            const { propertyId, name, description, price, count } = req.body;
+            const { mimetype, originalname, filename } = req.file;
 
-        if (!propertyId) {
-            throw new Error('Reference Property ID is required');
-        }
-        if (!name) {
-            throw new Error('Name is required');
-        }
-        if (!description) {
-            throw new Error('Description is required');
-        }
-        if (!price) {
-            throw new Error('Price is required');
-        }
-        if (!count) {
-            throw new Error('Count is required');
-        }
-        if (!req.file) {
-            throw new Error('unit Image is required');
-        }
-        if (!mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file');
-        }
-        const UnitAlreadyExists = await Unit.findOne({
-            where: { name: name },    
-        });
-    
-        if (UnitAlreadyExists) {
-            throw new Error('Unit with the specified name already exists');
-        }
+            if (!propertyId) {
+                throw new Error('Reference Property ID is required');
+            }
+            if (!name) {
+                throw new Error('Name is required');
+            }
+            if (!description) {
+                throw new Error('Description is required');
+            }
+            if (!price) {
+                throw new Error('Price is required');
+            }
+            if (!count) {
+                throw new Error('Count is required');
+            }
+            if (!req.file) {
+                throw new Error('unit Image is required');
+            }
+            if (!mimetype.startsWith('image')) {
+                throw new Error('Please upload an image file');
+            }
+            const UnitAlreadyExists = await Unit.findOne({
+                where: { name: name },    
+            });
+        
+            if (UnitAlreadyExists) {
+                throw new Error('Unit with the specified name already exists');
+            }
 
-        const property = await Property.findOne({
-            where: { id: propertyId },
+            const property = await Property.findOne({
+                where: { id: propertyId },
+            });
+            if (!property) {
+                throw new Error('Property with the specified ID does not exists');
+            }
+            const unit = await Unit.create({
+                propertyId,
+                name,
+                description,
+                price,
+                count,
+                type: mimetype,
+                imagename: originalname,
+                data: filename,
+            }, 
+            { transaction: t });
+            res.status(201).json({ unit, msg: "Unit created, image succesfully uploaded", });
         });
-        if (!property) {
-            throw new Error('Property with the specified ID does not exists');
-        }
-        const unit = await Unit.create({
-            propertyId,
-            name,
-            description,
-            price,
-            count,
-            type: mimetype,
-            imagename: originalname,
-            data: filename,
-    
-        });
-        res.status(201).json({ unit,
-            msg: "Unit created, image succesfully uploaded", });
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -136,30 +137,34 @@ const getunitImage = async (req, res) => {
 
 const updatepropertyUnit = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name, description, price, count } = req.body;
-        const unit = await Unit.findOne({
-            where: { id: id },
-        });
-        if (!unit) {
-            throw new Error('Unit with the specified ID does not exists');
-        }
-       await Unit.update(
-            {
-                name,
-                description,
-                price,
-                count,
-            },
-            {
+        const result = await sequelize.transaction(async (t) => {
+            const { id } = req.params;
+            const { name, description, price, count } = req.body;
+            const unit = await Unit.findOne({
                 where: { id: id },
-            },
-        );
-        // return the full updated unit details
-        const updatedUnitDetails = await Unit.findOne({
-            where: { id: id },
+            });
+            if (!unit) {
+                throw new Error('Unit with the specified ID does not exists');
+            }
+        await Unit.update(
+                {
+                    name,
+                    description,
+                    price,
+                    count,
+                },
+                {
+                    where: { id: id },
+                },
+                { transaction: t    }
+
+            );
+            // return the full updated unit details
+            const updatedUnitDetails = await Unit.findOne({
+                where: { id: id },
+            });
+            res.status(200).json({ msg: "Unit updated", updatedUnitDetails });
         });
-        res.status(200).json({ msg: "Unit updated", updatedUnitDetails });
     } catch (error) {
         res.status(500).send(error.message);
     }

@@ -2,6 +2,7 @@ const db = require("../../models");
 const Property = db.Property;
 const Unit = db.Unit;     
 const Waitlist = db.Waitlist;
+const { sequelize, Sequelize } = require('../../models');
 const Op = require("sequelize").Op;
 const path = require('path');
 
@@ -45,61 +46,65 @@ const getPropertyById = async (req, res) => {
 
 const createProperty = async (req, res) => {
     try {
-        const { name, location, status, description } = req.body;
-        const {} = req.files;
+        const result = await sequelize.transaction(async (t) => {
+            const { name, location, status, description } = req.body;
+            const {} = req.files;
 
-        // console.log (req.files)
+            // console.log (req.files)
 
-        // validate request
-        if (!name) {
-            throw new Error("Name is required");
-        }
-        if (!location) {
-            throw new Error("Location is required");
-        }
-        if (!description) {
-            throw new Error("Property Description is required");
-        }
-        if (!status) {
-            throw new Error("Status is required");
-        }
-        if (!req.files) {
-            throw new Error("Property Image is required");
-        }
-        if (!req.files.length > 5) {
-            throw new Error("Maximum of 5 images allowed");
-        }
-    
+            // validate request
+            if (!name) {
+                throw new Error("Name is required");
+            }
+            if (!location) {
+                throw new Error("Location is required");
+            }
+            if (!description) {
+                throw new Error("Property Description is required");
+            }
+            if (!status) {
+                throw new Error("Status is required");
+            }
+            if (!req.files) {
+                throw new Error("Property Image is required");
+            }
+            if (!req.files.length > 5) {
+                throw new Error("Maximum of 5 images allowed");
+            }
+        
 
-        const PropertyAlreadyExists = await Property.findOne({
-            where: { name: name },
-        });
-        if (!PropertyAlreadyExists) {
+            const PropertyAlreadyExists = await Property.findOne({
+                where: { name: name },
+            });
+            if (!PropertyAlreadyExists) {
 
-            // save image file name in req.files as an array
-            const imagenames = [];
-            const imagemimetype = [];
-            // save image data as bytea in req.files as an array
-            const imagefile = [];
-            req.files.forEach((file) => {
-                imagenames.push(file.originalname);
-                imagemimetype.push(file.mimetype);
-                imagefile.push(file.filename);
-            });            
-            const property = await Property.create(
-                {
-                    name,
-                    location,
-                    status,
-                    description,
-                    type: `${imagemimetype}`,
-                    imagename: `${imagefile}`,
-                    data: `${imagefile}`,
-                },
-            );
-            return res.status(201).json({property, msg: "Property created successfully"});
-        }
-        throw new Error ("property with specified name already exists")
+                // save image file name in req.files as an array
+                const imagenames = [];
+                const imagemimetype = [];
+                // save image data as bytea in req.files as an array
+                const imagefile = [];
+                req.files.forEach((file) => {
+                    imagenames.push(file.originalname);
+                    imagemimetype.push(file.mimetype);
+                    imagefile.push(file.filename);
+                });            
+                const property = await Property.create(
+                    {
+                        name,
+                        location,
+                        status,
+                        description,
+                        type: `${imagemimetype}`,
+                        imagename: `${imagefile}`,
+                        data: `${imagefile}`,
+                    },
+                    { transaction: t }
+                );
+                return res.status(201).json({property, msg: "Property created successfully"});
+            }
+            throw new Error("Property with specified name already exists");
+            });
+ 
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -143,33 +148,36 @@ const getpropertyimages = async (req, res) => {
 
 const updateProperty = async (req, res) => {
     try {
+        const result = await sequelize.transaction(async (t) => {
         const { id } = req.params;
-        let { name, location, status, description } = req.body;
-        if (name) {
-            const NameAlreadyExists = await Property.findOne({
-                where: { name: name,},
-            });
-            if (NameAlreadyExists) {
-                throw new Error("Property with the specified name already exists");
+            let { name, location, status, description } = req.body;
+            if (name) {
+                const NameAlreadyExists = await Property.findOne({
+                    where: { name: name,},
+                });
+                if (NameAlreadyExists) {
+                    throw new Error("Property with the specified name already exists");
+                }
             }
-        }
 
-        const [updated] = await Property.update(
-            {
-                name,
-                location,
-                status,
-                description
-            },
-            {
-                where: { id: id },
-            },
-        );
-        if (updated) {
-            const updatedProperty = await Property.findOne({ where: { id: id } });
-            return res.status(200).json({ property: updatedProperty });
-        }
-        throw new Error("Property not found");
+            const [updated] = await Property.update(
+                {
+                    name,
+                    location,
+                    status,
+                    description
+                },
+                {
+                    where: { id: id },
+                },
+                { transaction: t }
+            );
+            if (updated) {
+                const updatedProperty = await Property.findOne({ where: { id: id } });
+                return res.status(200).json({ property: updatedProperty });
+            }
+            throw new Error("Property not found");
+        });
     } catch (error) {
         res.status(500).send(error.message);
     }
