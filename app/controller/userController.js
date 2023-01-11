@@ -52,8 +52,8 @@ const registerAdmin = async (req, res) => {
             await sendMail(mailOptions2);
 
             res.status(201).json({ 
-                message: "User created, verification code sent to email, please verify" ,
-                user, code: verification_code });     
+                message: "Admin request received, verification code sent to email, please verify" ,
+                user})    
         });
 
     } catch (error) {
@@ -69,7 +69,7 @@ const verifyAdmin = async (req, res) => {
             const verification_code = await usercode.toString() + admincode.toString();
             const user = await User.findOne({ where: { email } });
             if (!user) {
-                return res.status(400).json({ message: "User does not exist" });
+                return res.status(400).json({ message: "Unidentified credentials" });
             }
             if (user.verification_code !== verification_code) {
                 return res.status(400).json({ message: "Invalid verification code" });
@@ -78,7 +78,7 @@ const verifyAdmin = async (req, res) => {
             user.verification_code = null;
 
             await user.save();
-            res.status(200).json({ message: "User verified, You can proceed to login" });
+            res.status(200).json({ message: "Admin request has been verified, You can proceed to login" });
         });
     } catch (error) {
         res.status(500).send(error.message);

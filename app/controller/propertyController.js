@@ -5,7 +5,7 @@ const Waitlist = db.Waitlist;
 const { sequelize, Sequelize } = require('../../models');
 const Op = require("sequelize").Op;
 const path = require('path');
-
+const uploadtocloudinary = require('../middlewares/cloudinary').uploadtocloudinary;
 
 const getAllProperty = async (req, res) => {
     try {
@@ -48,7 +48,6 @@ const createProperty = async (req, res) => {
     try {
         const result = await sequelize.transaction(async (t) => {
             const { name, location, status, description } = req.body;
-            const {} = req.files;
 
             // console.log (req.files)
 
@@ -60,7 +59,7 @@ const createProperty = async (req, res) => {
                 throw new Error("Location is required");
             }
             if (!description) {
-                throw new Error("Property Description is required");
+                throw new Eror("Property Description is required");
             }
             if (!status) {
                 throw new Error("Status is required");
@@ -78,28 +77,33 @@ const createProperty = async (req, res) => {
             });
             if (!PropertyAlreadyExists) {
 
-                // save image file name in req.files as an array
-                const imagenames = [];
-                const imagemimetype = [];
-                // save image data as bytea in req.files as an array
-                const imagefile = [];
-                req.files.forEach((file) => {
-                    imagenames.push(file.originalname);
-                    imagemimetype.push(file.mimetype);
-                    imagefile.push(file.filename);
-                });            
+            var bufferarray = [];
+            for (let i = 0; i < req.files.length; i++) {
+                var localfilepath = req.files[i].path;
+                var originalname = req.files[i].originalname;
+                var uploadresult = await uploadtocloudinary(localfilepath, originalname);
+                // check for success response
+                if (uploadresult.message === 'error') {
+                    return next(new CustomError.BadRequestError(uploadresult.message));
+                }
+                if (uploadresult.message === 'success') {
+                    bufferarray.push(uploadresult.url);
+                }
+            }
+            if (bufferarray.length === 0) {
+                return next(new CustomError.BadRequestError("Error uploading images to cloudinary"));
+            };            
                 const property = await Property.create(
                     {
                         name,
                         location,
                         status,
                         description,
-                        type: `${imagemimetype}`,
-                        imagename: `${imagefile}`,
-                        data: `${imagefile}`,
+                        images: bufferarray
                     },
                     { transaction: t }
                 );
+
                 return res.status(201).json({property, msg: "Property created successfully"});
             }
             throw new Error("Property with specified name already exists");
@@ -113,32 +117,16 @@ const createProperty = async (req, res) => {
 const getpropertyimages = async (req, res) => {
     try {
         const { id } = req.params;
-        const {index} = req.query
         const property = await Property.findOne({
             where: { id: id },
         });
         if (!property) {
             res.status(404).send("Property with the specified ID does not exists");
         }
-        const imagenames = property.dataValues.imagename;
-        const imagenamesarray = imagenames.split(",");
-        if (index > imagenamesarray.length || index === '0') {
-            throw new Error("index is out of range");
+        if (!property.images) {
+            throw new Error('No images were found for this property')
         }
-
-        const indexed = index - 1;
-        // console.log(imagenamesarray)
-        const imagearray = [];
-        
-
-        for (let i=0; i<imagenamesarray.length; i++ ) {
-            let image = imagenamesarray[i];
-            const imagepath = path.join(__dirname, `../../images/${image}`);
-            imagearray.push(imagepath);
-            // console.log(imagepath)
-        }
-
-        await res.status(200).sendFile(imagearray[`${indexed}`])
+        return res.status(200).json({ images: property.images });
 
     } catch (error) {
         console.log(error);

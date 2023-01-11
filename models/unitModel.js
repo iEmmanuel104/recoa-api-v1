@@ -23,14 +23,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        type: {
+        unitimage: {
             type: DataTypes.STRING,
-        },
-        imagename: {
-            type: DataTypes.STRING,
-        },
-        data: {
-            type: DataTypes.BLOB('long'),
+            allowNull: false
         },
         unitstatus: {
             type: DataTypes.ENUM('available', 'reserved'),

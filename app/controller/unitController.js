@@ -7,6 +7,7 @@ const User = db.User;
 const { sequelize, Sequelize } = require('../../models');
 const Op = require('sequelize').Op;
 const path = require('path');
+const { uploadtocloudinary } = require('../middlewares/cloudinary');
 
 const getAllUnit = async (req, res) => {
     try {
@@ -21,7 +22,6 @@ const addpropertyUnit = async (req, res) => {
     try {
         const result = await sequelize.transaction(async (t) => {
             const { propertyId, name, description, price, count } = req.body;
-            const { mimetype, originalname, filename } = req.file;
 
             if (!propertyId) {
                 throw new Error('Reference Property ID is required');
@@ -41,9 +41,7 @@ const addpropertyUnit = async (req, res) => {
             if (!req.file) {
                 throw new Error('unit Image is required');
             }
-            if (!mimetype.startsWith('image')) {
-                throw new Error('Please upload an image file');
-            }
+
             const UnitAlreadyExists = await Unit.findOne({
                 where: { name: name },    
             });
@@ -58,18 +56,24 @@ const addpropertyUnit = async (req, res) => {
             if (!property) {
                 throw new Error('Property with the specified ID does not exists');
             }
-            const unit = await Unit.create({
-                propertyId,
-                name,
-                description,
-                price,
-                count,
-                type: mimetype,
-                imagename: originalname,
-                data: filename,
-            }, 
-            { transaction: t });
-            res.status(201).json({ unit, msg: "Unit created, image succesfully uploaded", });
+            const localfilepath = req.file.path;
+            const originalname = req.file.originalname;
+            const uploadresult = await uploadtocloudinary(localfilepath, originalname);
+            console.log(uploadresult);
+            if (uploadresult.message === 'success') {
+                const unit = await Unit.create({
+                    propertyId,
+                    name,
+                    description,
+                    price,
+                    count,
+                    unitimage: uploadresult.url,
+                }, 
+                { transaction: t });
+                res.status(201).json({ unit, msg: "Unit created, image succesfully uploaded", });
+            } else {
+                throw new Error('Image upload failed');
+            }
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -115,20 +119,12 @@ const getunitImage = async (req, res) => {
         const unit = await Unit.findOne({
             where: { id: id },
         });
-        if (unit) {
-            const imagePath = path.join(__dirname, `../../images/${unit.data}`);
-            console.log (imagePath);
-            // send path to image
-            return res.status(200).sendFile(imagePath);
+        if (!unit) {
+            throw new Error('No unit found');
         }
-        res.status(404).send('Unit with the specified ID does not exists');
-        // if (unit.data) {
-        //     console.log(unit.data);
-        //     const imagePath = path.join(__dirname, `../../images/${unit.data}`);
-
-        //     return res.status(200).sendFile(path.join(__dirname, `../../images/${unit.data}`));
-        // }
-        // res.status(404).send('Unit with the specified ID does not exists');
+        const unitimage = unit.unitimage;
+        res.status(200).json({ msg: "Unit image", unitimage });
+ 
     } catch (error) {
         console.log(error);
         res.status(500).send(error.message);
