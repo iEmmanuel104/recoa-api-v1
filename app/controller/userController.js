@@ -12,7 +12,7 @@ const generatePassword = require('../middlewares/StringGenerator.js');
 
 const registerAdmin = async (req, res) => {
     try {
-        const result = await sequelize.transaction(async (t) => {
+        await sequelize.transaction(async (t) => {
             const { username, email, password, user_type } = req.body;
             // generate code for verification
             let usercode = Math.floor(100000 + Math.random() * 90000);
@@ -64,7 +64,7 @@ const registerAdmin = async (req, res) => {
 
 const verifyAdmin = async (req, res) => {
     try {
-        const result = await sequelize.transaction(async (t) => {
+        await sequelize.transaction(async (t) => {
             const { email, usercode, admincode } = req.body;
             const verification_code = await usercode.toString() + admincode.toString();
             const user = await User.findOne({ where: { email } });
@@ -138,7 +138,7 @@ const Adminlogout = async (req, res) => {
 
 const Createinvestor = async (req, res) => {
     try {
-        const result = await sequelize.transaction(async (t) => {
+        await sequelize.transaction(async (t) => {
             const { username, email} = req.body;
             const user = await User.findOne({ where: { username } });
             if (user) {

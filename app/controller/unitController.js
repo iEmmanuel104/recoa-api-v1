@@ -59,7 +59,6 @@ const addpropertyUnit = async (req, res) => {
             const localfilepath = req.file.path;
             const originalname = req.file.originalname;
             const uploadresult = await uploadtocloudinary(localfilepath, originalname);
-            console.log(uploadresult);
             if (uploadresult.message === 'success') {
                 const unit = await Unit.create({
                     propertyId,
