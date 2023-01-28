@@ -345,12 +345,17 @@ const getusersunderunit = async (req, res) => {
             order: [['reserveDate', 'DESC']],
         });
 
-        // return only only last reserve for each user
+        // return only only last reserve for each user and add username to each item
         const userreservedunitcountunique = userreservedunitcount.filter((item, index, self) => 
+        // return only last reserve for each user
             index === self.findIndex((t) => ( 
-                t.userId === item.userId, t.username === item.username
+                t.userId === item.userId
             ))
-        )
+        ).map((item) => {
+            // add username to each item
+            const user = users.find((user) => user.id === item.userId);
+            return { ...item.dataValues, username: user.username };
+        });
         return res.status(200).json({ msg: "Users under unit", users, userreservedunitcountunique });
     } catch (error) {
         res.status(500).send(error.message);
