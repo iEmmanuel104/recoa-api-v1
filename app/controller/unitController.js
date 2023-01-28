@@ -348,7 +348,7 @@ const getusersunderunit = async (req, res) => {
         // return only only last reserve for each user
         const userreservedunitcountunique = userreservedunitcount.filter((item, index, self) => 
             index === self.findIndex((t) => ( 
-                t.userId === item.userId
+                t.userId === item.userId, t.username === item.username
             ))
         )
         return res.status(200).json({ msg: "Users under unit", users, userreservedunitcountunique });

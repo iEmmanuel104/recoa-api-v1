@@ -3,3 +3,6 @@ node_modules
 .env
 images
 ```
+
+
+postgres://Recoa:recoajosh@recoadb.chfwkurjn16c.us-east-1.rds.amazonaws.com:5432/recoadb
